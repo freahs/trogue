@@ -37,6 +37,7 @@ compile: $(SRC_DIR)/$(BIN_NAME).cpp $(OBJ)
 
 clean:
 	rm -f $(OBJ_DIR)/*.o
+	rm -f $(BIN_DIR)/*
 	cp ../tyra/lib/libtyra.a ./lib/
 	cp ../tyra/inc/* ./inc/tyra/
 
