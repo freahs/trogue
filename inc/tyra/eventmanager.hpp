@@ -1,23 +1,42 @@
-#ifndef LIBTYRA_EVENTMANAGER_H
-#define LIBTYRA_EVENTMANAGER_H
+/**
+ * Copyright 2016 Fredrik Åhs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-#include "defs.hpp"
+#ifndef TYRA_EVENTMANAGER_H
+#define TYRA_EVENTMANAGER_H
+
 #include "entitymanager.hpp"
+#include "manager.hpp"
 #include "typeid.hpp"
 
+#include <cstdint>
 #include <map>
-#include <set>
+#include <unordered_set>
 
 namespace tyra {
+
+    const std::size_t MAX_EVENT_TYPES = UINT8_MAX;
 
     class Event {
     public:
         virtual void run(EntityId) const { }
     };
 
-    class EventManager {
+    class EventManager : public Manager {
     private:
-        std::map<TypeId, std::set<EntityId>> m_events;
+        std::map<TypeId, std::unordered_set<EntityId>> m_events;
 
         void add(EntityId, TypeId);
         void remove(EntityId, TypeId);

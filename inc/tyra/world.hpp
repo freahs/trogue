@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#ifndef LIBTYRA_WORLD_H
-#define LIBTYRA_WORLD_H
+#ifndef TYRA_WORLD_H
+#define TYRA_WORLD_H
 
-#include "../inc/defs.hpp"
-#include "../inc/componentmanager.hpp"
-#include "../inc/entitymanager.hpp"
-#include "../inc/systemmanager.hpp"
+#include "entitymanager.hpp"
 
 #include <map>
 
-
 namespace tyra {
+
+    class ComponentManager;
+    class EntityManager;
+    class SystemManager;
 
     class World {
         private:
-            ComponentManager	m_component_manager;
-            EntityManager		m_entity_manager;
-            SystemManager       m_system_manager;
+            ComponentManager*	m_component_manager;
+            EntityManager*		m_entity_manager;
+            SystemManager*      m_system_manager;
             bool				m_processing;
 
             std::map<std::string, EntityId> m_tags;
@@ -41,7 +41,7 @@ namespace tyra {
             virtual void postUpdate() { }
 
         public:
-            World() = default;
+            World();
             virtual ~World() = default;
 
             void start()            { m_processing = true; }
@@ -49,9 +49,9 @@ namespace tyra {
             bool processing() const { return m_processing; }
             void update();
 
-            EntityManager& entity()			{ return m_entity_manager; }
-            ComponentManager& component()	{ return m_component_manager; }
-            SystemManager& system()         { return m_system_manager; }
+            EntityManager& entity();
+            ComponentManager& component();
+            SystemManager& system();
 
             EntityId tag(const std::string&) const;
             void tag(const std::string&, EntityId);

@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-#ifndef LIBTYRA_COMPONENT_H
-#define LIBTYRA_COMPONENT_H
+#ifndef TYRA_MANAGER_H
+#define TYRA_MANAGER_H
 
 namespace tyra {
 
-	class Component {
-	public:
-		virtual ~Component() { }
-	};
+	class World;
 
+	class Manager {
+	private:
+		World* m_world;
+
+	protected:
+		World& world() { return *m_world; }
+
+	public:
+		Manager() : m_world(nullptr) { }
+		void world(World& world) { m_world = &world; }
+	};
 }
 
 #endif

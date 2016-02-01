@@ -1,13 +1,14 @@
 #ifndef TROGUE_RENDERSYSTEM_H
 #define TROGUE_RENDERSYSTEM_H
 
-#include "tyra/defs.hpp"
 #include "tyra/system.hpp"
+#include "display.hpp"
 
 #include <unordered_set>
 
 
 namespace trogue {
+
 
     class EntitySystem : public tyra::System {
         protected:
@@ -16,6 +17,13 @@ namespace trogue {
     };
 
     class RenderSystem : public EntitySystem {
+        private:
+            Display*        m_display;
+            SceneManager*   m_scene_manager;
+
+            Display& display();
+            SceneManager& scene();
+
         protected:
             void processEntity(tyra::EntityId id);
 

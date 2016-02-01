@@ -63,12 +63,15 @@ void table(const char *title, const char *mode)
 }
 
 int main() {
+    std::cout << "main_debug" << std::endl;
     trogue::Display* d = trogue::Display::instance();
 
     size_t width = d->width();
     size_t height = d->height();
 
-    for (size_t i = 0; i < 100; ++i) {
+    int fg = 0;
+    for (size_t i = 0; i < 25; ++i) {
+        d->color(-1, -1);
         for(size_t x = 0; x < width;  ++x){
             d->put(x, 0, "u");
             d->put(x, height - 1, "d");
@@ -77,12 +80,18 @@ int main() {
             d->put(0, y, "l");
             d->put(width - 1, y, "r");
         }
-        int fg = 0;
         for (size_t x = 1; x < width - 1; ++x) {
             for (size_t y = 1; y < height - 1; ++y) {
                 fg = (fg + 1) % 256;
+                if (fg % 2 == 1) {
+                    d->format(trogue::Display::BOLD);
+                    d->color(-1, -1);
+                } else {
+                    d->format(trogue::Display::ITALIC);
+                    d->color(-1, -1);
+                }
                 int bg = 255 - fg;
-                d->put(x, y, fg, bg, "@");
+                d->put(x, y, "@");
             }
         }
         d->draw();

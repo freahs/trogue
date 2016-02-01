@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef LIBTYRA_COMPONENTMANAGER_H
-#define LIBTYRA_COMPONENTMANAGER_H
+#ifndef TYRA_COMPONENTMANAGER_H
+#define TYRA_COMPONENTMANAGER_H
 
-#include "../inc/defs.hpp"
-#include "../inc/typeid.hpp"
+#include "entitymanager.hpp"
+#include "manager.hpp"
+#include "typeid.hpp"
 
 #include <array>
 #include <bitset>
+#include <cstdint>
 #include <unordered_set>
 #include <vector>
 
 namespace tyra {
 
-    class Component;
+    const std::size_t MAX_COMPONENT_TYPES = UINT8_MAX;
 
-    class ComponentManager {
+    struct Component {
+            virtual ~Component() { }
+    };
+
+    class ComponentManager : public Manager {
         private:
             typedef std::array<Component*, MAX_COMPONENT_TYPES>	ComponentArray;
             typedef std::bitset<MAX_COMPONENT_TYPES>            ComponentBitSet;

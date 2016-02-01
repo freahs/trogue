@@ -1,7 +1,7 @@
 #ifndef TROGUE_COMPONENTS_H
 #define TROGUE_COMPONENTS_H
 
-#include "tyra/component.hpp"
+#include "tyra/componentmanager.hpp"
 
 #include <string>
 
@@ -13,10 +13,13 @@ namespace trogue {
     };
 
     struct DisplayComponent {
-        std::string symbol;
-        int color, bg_color;
-        DisplayComponent(std::string symbol, int color, int bg_color)
-        : symbol(symbol), color(color), bg_color(bg_color) {
+        std::string     symbol;
+        int             color;
+        int             bg_color;
+        int             layer;
+
+        DisplayComponent(std::string symbol, int color, int bg_color, int layer)
+        : symbol(symbol), color(color), bg_color(bg_color), layer(layer) {
         } 
     };
 }
