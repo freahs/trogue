@@ -9,7 +9,7 @@ LIB_DIR=lib
 RELEASE_FLAGS=-DNDEBUG
 DEBUG_FLAGS=
 
-_OBJ = display.o 
+_OBJ =
 OBJ = $(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 #fdiagnostics requirec gcc 4.9+

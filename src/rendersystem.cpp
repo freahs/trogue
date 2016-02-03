@@ -3,6 +3,7 @@
 #include "../inc/tyra/tyra.hpp"
 #include "../inc/components.hpp"
 #include "../inc/display.hpp"
+#include "../inc/scenemanager.hpp"
 
 #include <unordered_set>
 
@@ -19,10 +20,15 @@ namespace trogue {
         requireAll<DisplayComponent>();
     }
 
+    Display& RenderSystem::display() { return *m_display; }
+
+    SceneManager& RenderSystem::scene() { return *m_scene_manager; }
+
     void RenderSystem::processEntity(tyra::EntityId id) {
         auto pos = world().component().get<PositionComponent>(id);
         auto disp = world().component().get<DisplayComponent>(id);
     }
+
 }
 
 

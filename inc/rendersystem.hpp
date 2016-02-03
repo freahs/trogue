@@ -9,6 +9,7 @@
 
 namespace trogue {
 
+    class SceneManager;
 
     class EntitySystem : public tyra::System {
         protected:

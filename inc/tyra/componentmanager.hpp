@@ -42,9 +42,9 @@ namespace tyra {
 
             std::unordered_set<EntityId>    m_updated;
 
-            std::vector<ComponentArray>		m_components;
-            std::vector<ComponentBitSet>	m_components_bits;
-            size_t							m_num_registered_components;
+            std::vector<ComponentArray>     m_components;
+            std::vector<ComponentBitSet>    m_components_bits;
+            size_t                          m_num_registered_components;
 
             void add(EntityId, TypeId, Component*);
             void remove(EntityId, TypeId);

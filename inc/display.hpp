@@ -1,88 +1,89 @@
 #ifndef TROGUE_DISPLAY_H
 #define TROGUE_DISPLAY_H
 
-#include <cstdint>
-#include <cstdlib>
-#include <string>
-#include <sstream>
-#include <vector>
+#include "scene.hpp"
+#include "format.hpp"
+
+#include <iostream>
+#include <signal.h>
+#include <sys/ioctl.h>
 
 namespace trogue {
 
     class Display {
         private:
-
-            struct FormatNode {
-                    bool        m_bold;
-                    bool        m_italic;
-                    bool        m_underline;
-                    int         m_fg_color;
-                    int         m_bg_color;
-
-                    std::string boldf() const;
-                    std::string italicf() const;
-                    std::string underlinef() const;
-                    std::string fgcolorf() const;
-                    std::string bgcolorf() const;
-
-                    void bold(bool b) { m_bold = b; }
-                    bool bold() const { return m_bold; }
-                    void italic(bool b) { m_italic = b; }
-                    bool italic() const { return m_italic; }
-                    void underline(bool b) { m_underline = b; }
-                    void fgcolor(int i) { m_fg_color = i; }
-                    void bgcolor(int i) { m_bg_color = i; }
-                    void color(int fg, int bg) { m_fg_color = fg; m_bg_color = bg; }
-
-                    FormatNode();
-                    FormatNode (bool bold, bool italic, bool underline, int fg_color, int bg_color);
-
-                    void format(std::ostream&) const;
-                    void format(std::ostream&, FormatNode&) const;
-            };
-
-            class TextNode : public FormatNode {
-                private:
-                    std::string m_text;
-
-                public:
-                    TextNode();
-                    TextNode(const std::string& text);
-                    TextNode(const FormatNode& format, const std::string& text);
-
-                    const std::string& str() const { return m_text; }
-            };
-
-            std::vector<std::vector<TextNode>> m_arr;
             static size_t   s_rows;
             static size_t   s_cols;
             static Display* s_display;
 
-            FormatNode      m_current_format;
-            
-            Display();
-            static void resizeHandler(int);
+            Display() {
+                signal(SIGWINCH, Display::resizeHandler);
+                resizeHandler(0);
+            }
+
+            static void resizeHandler(int) {
+                struct winsize ws;
+                ioctl(0, TIOCGWINSZ, &ws);
+                s_rows = ws.ws_row - 2;
+                s_cols = ws.ws_col;
+            }
 
         public:
-            static const uint8_t NONE = 1;
-            static const uint8_t BOLD = 2;
-            static const uint8_t ITALIC = 4;
-            static const uint8_t UNDERLINE = 8;
+            ~Display() {
+                if (s_display != nullptr) {
+                    delete s_display;
+                }
+            }
 
-            ~Display();
+            static Display* instance(){
+                if (s_display == nullptr) {
+                    s_display = new Display();
+                }
+                return s_display;
+            }
 
-            static Display* instance();
+            void draw(int player_x, int player_y, int w, int h, const Scene& scene) {
+                int half_screen_height = height()/2;
+                int half_screen_width = width()/2;
+                int half_height = h/2;
+                int half_width = w/2;
+                int y1 = half_screen_height - half_height;
+                int y2 = half_screen_height + half_height;
+                int x1 = half_screen_width - half_width;
+                int x2 = half_screen_width + half_width;
 
-            void color(int, int);
-            void format(uint8_t);
-            void put(size_t, size_t, std::string str);
+                std::cout << "\033[?25l\033[0m\033[1;1H"; // clear format, hide cursor, postion 1,1
+                const Format* prev_format = &Format::empty;
+                Format::empty.apply(std::cout);
 
-            void draw();
-            void reset();
+                for (int y = 0; y < (int) height(); ++y) {
+                    for (int x = 0; x < (int) width(); ++x) {
+                        if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+                            int scene_y = y - half_screen_height + player_y;
+                            int scene_x = x - half_screen_width + player_x;
+                            scene.get(scene_x, scene_y).print(std::cout, prev_format);
+                        } else {
+                            Tile::empty.print(std::cout, prev_format);
+                        }
+                    }
+                    std::cout << std::endl;
+                } 
 
-            size_t width() const;
-            size_t height() const;
+                std::cout << "\033[?25h"; // unhide cursor
+            }
+
+            size_t width() const {
+                return s_cols;
+            }
+
+            size_t height() const {
+                return s_rows;
+            }
     };
+
+    Display* Display::s_display = nullptr;
+    size_t Display::s_rows = 0;
+    size_t Display::s_cols = 0;
 
 }
 

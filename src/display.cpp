@@ -13,9 +13,6 @@
 
 namespace trogue {
 
-    Display* Display::s_display = nullptr;
-    size_t Display::s_rows = 0;
-    size_t Display::s_cols = 0;
 
     Display::FormatNode::FormatNode()
         : m_bold(false), m_italic(false), m_underline(false), m_fg_color(-1), m_bg_color(-1) {
@@ -84,11 +81,6 @@ namespace trogue {
         }
     }
 
-    Display::~Display() {
-        if (s_display != nullptr) {
-            delete s_display;
-        }
-    }
 
     void Display::resizeHandler(int) {
         struct winsize ws;
@@ -105,12 +97,6 @@ namespace trogue {
         }
     }
 
-    Display* Display::instance(){
-        if (s_display == nullptr) {
-            s_display = new Display();
-        }
-        return s_display;
-    }
 
     void Display::color(int fg, int bg) {
         m_current_format.color(fg, bg);
@@ -142,12 +128,5 @@ namespace trogue {
         std::cout << "\033[?25h";
     } 
 
-    size_t Display::width() const {
-        return s_cols;
-    }
-
-    size_t Display::height() const {
-        return s_rows;
-    }
 
 }

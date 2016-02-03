@@ -10,92 +10,53 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 #include "../inc/display.hpp"
+#include "../inc/format.hpp"
+#include "../inc/scene.hpp"
+#include "../inc/tile.hpp"
+#include "../inc/tilestack.hpp"
+#include "../inc/input.hpp"
 
-void sighandler(int sig) {
-    struct winsize ws;
-    int rv = ioctl(0, TIOCGWINSZ, &ws);
-    printf("IOCTL: rv=%d rows=%d cols=%d\n", rv, ws.ws_row, ws.ws_col);
-}
-/*
-   int main(void){
-   setlocale (LC_ALL,"");
-   initscr();          
-   start_color();
-   use_default_colors();
-
-   trogue::DisplayComponent dc("∀", 1, 1);
-
-   for (int fg = 0; fg < COLORS; ++fg) {
-   for (int bg = 0; bg < COLORS; ++bg) {
-   int pos = COLORS*bg + fg;
-   init_pair(pos, fg, bg);
-   }
-   }
-
-   for(int i = 0; i < COLORS; ++i) {
-   char str[3];
-   int pos = i * COLORS;
-   attron(COLOR_PAIR(pos));
-   sprintf(str, "%d ", pos);
-   addstr(str);
-   attroff(COLOR_PAIR(pos));
-   }
-   getch();
-   endwin();       
-   return 0;
-   }
-   */
-
-void table(const char *title, const char *mode)
-{
-    int f, b;
-    printf("\n\033[1m%s\033[m\n bg\t fg\n", title);
-    for (b = 40; b <= 107; b++) {
-        if (b == 48) b = 100;
-        printf("%3d\t\033[%s%dm", b, mode, b);
-        for (f = 30; f <= 97; f++) {
-            if (f == 38) f = 90;
-            printf("\033[%dm%3d ", f, f);
+void makeScene(trogue::Scene& scene) {
+    scene.empty(trogue::Tile(trogue::Format(false, false, false, 234, 234), " ", 1));
+    scene.emptyAlternative(trogue::Tile(trogue::Format(false, false, false, 238, 234), ".", 1));
+    for (size_t y = 0; y < scene.height(); ++y){
+        for (size_t x = 0; x < scene.width(); ++x) {
+            std::stringstream ss;
+            ss << std::hex << (x*y % 16);
+            scene.add(x, y, trogue::Tile(trogue::Format(false, false, false, x, y), ss.str(), 1));
         }
-        puts("\033[m");
     }
 }
 
 int main() {
-    std::cout << "main_debug" << std::endl;
-    trogue::Display* d = trogue::Display::instance();
+    struct winsize ws;
+    ioctl(0, TIOCGWINSZ, &ws);
+    trogue::Scene scene(16, 16);
+    makeScene(scene);
+    trogue::Display * display = trogue::Display::instance();
+    int width = 20;
+    int height = 10;
 
-    size_t width = d->width();
-    size_t height = d->height();
+    int x = 1;
+    int y = 1;
 
-    int fg = 0;
-    for (size_t i = 0; i < 25; ++i) {
-        d->color(-1, -1);
-        for(size_t x = 0; x < width;  ++x){
-            d->put(x, 0, "u");
-            d->put(x, height - 1, "d");
-        }
-        for (size_t y = 0; y < height; ++y) {
-            d->put(0, y, "l");
-            d->put(width - 1, y, "r");
-        }
-        for (size_t x = 1; x < width - 1; ++x) {
-            for (size_t y = 1; y < height - 1; ++y) {
-                fg = (fg + 1) % 256;
-                if (fg % 2 == 1) {
-                    d->format(trogue::Display::BOLD);
-                    d->color(-1, -1);
-                } else {
-                    d->format(trogue::Display::ITALIC);
-                    d->color(-1, -1);
-                }
-                int bg = 255 - fg;
-                d->put(x, y, "@");
-            }
-        }
-        d->draw();
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    while (x < (int) scene.width() - 1) {
+        display->draw(++x, y, width, height, scene);
     }
 
+    while (y < (int) scene.height() - 1) {
+        display->draw(x, ++y, width, height, scene);
+    }
+
+    while (x > 0) {
+        display->draw(--x, y, width, height, scene);
+    }
+
+    while (y > 0) {
+        display->draw(x, --y, width, height, scene);
+    }
 }
+
