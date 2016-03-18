@@ -2,50 +2,33 @@
 #define TROGUE_SHADOWCAST_H
 
 #include <vector>
-#include <unordered_set>
-
-#define PI 3.14159265
 
 namespace trogue {
 
     class ShadowCast {
     private:
 
-        class Node {
-        private:
+        struct Node {
             std::vector<Node*>  m_children;
-            bool                m_visible;
-        public:
-            Node();
-            void visible(bool);
-            bool visible() const;
-            void set(bool);
+            bool                m_obstacle = false;
+            bool                m_shaded = false;
             void add(Node*);
-            bool contains(Node*) const;
         };
 
         int     m_center;
-        int     m_height;
-        int     m_width;
+        bool    m_strict;
         Node*   m_arr;
 
-        void scan(int, int);
-        void scan2(int, int);
-        void build();
-        void scanTop(int, int);
-        void scanBottom(int, int);
-        void scanLeft(int, int);
-        void scanRight(int, int);
-
-        Node* get(int, int) const;
-        float slope(float, float, float, float);
+        Node* node(int, int) const;
+        void calculate(int, int);
 
     public:
         ShadowCast(int);
+        ShadowCast(int, bool);
         ~ShadowCast();
 
-        void visible(int, int, bool);
-        bool visible(int, int) const;
+        void set(int, int);
+        bool get(int, int) const;
         void reset(int);
         void print();
     };
