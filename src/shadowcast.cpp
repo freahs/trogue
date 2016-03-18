@@ -35,12 +35,28 @@
 
 namespace trogue {
 
+    const float ShadowCast::Slope::mods[3][4] = {
+        {-0.5f, -0.5f, 0.5f,  0.5f},
+        {-0.5f, -0.5f, 0.5f, -0.5f},
+        {-0.5f,  0.5f, 0.5f, -0.5f}
+    };
+
+    ShadowCast::Slope::Slope(int y, int x) {
+        const float* mod;
+        if (y < 0) { mod = mods[0]; }
+        else if (y == 0) { mod = mods[1]; }
+        else { mod = mods[2]; }
+        top = (static_cast<float>(y) + mod[0])/(static_cast<float>(x) + mod[1]);
+        center = static_cast<float>(y)/static_cast<float>(x);
+        bottom = (static_cast<float>(y) + mod[2])/(static_cast<float>(x) + mod[3]);
+    }
+
     void ShadowCast::Node::add(Node* node) {
         if (node == this) { return; }
         m_children.push_back(node);
     }
 
-    void ShadowCast::calculate(int row, int col) {
+    void ShadowCast::calculate(int oy, int ox) {
 
         // when calculating shadows in the first quadrant in the picture above, rays
         // cast from the center should target the left top and bottom corner of a grid
@@ -49,26 +65,19 @@ namespace trogue {
         static float mods[2][4] = {{0.5f, -0.5f, -0.5f, -0.5f},{0.5f, -0.5f, -0.5f, 0.5f}};
         float* mod;
 
-        int trans_y = row - m_center;
-        int trans_x = col - m_center;
-
-        if (trans_y == 0) {
+        if (oy == 0) {
             mod = mods[0];
         } else {
             mod = mods[1];
         }
 
-        float top_slope =    (static_cast<float>(trans_y) + mod[0])/(static_cast<float>(trans_x) + mod[1]);
-        float bottom_slope = (static_cast<float>(trans_y) + mod[2])/(static_cast<float>(trans_x) + mod[3]);
+        float top_slope =    (static_cast<float>(oy) + mod[0])/(static_cast<float>(ox) + mod[1]);
+        float bottom_slope = (static_cast<float>(oy) + mod[2])/(static_cast<float>(ox) + mod[3]);
 
-        bool type_a = trans_y == 0;         // obstacle located on horizontal or vertical axis
-        bool type_b = trans_y == trans_x;   // obstacle located on diagonal axis
-
-
-        for (int x = trans_x; x <= m_center; ++x) {
+        for (int x = ox; x <= m_size; ++x) {
             int y_start = std::ceil(bottom_slope*x);
             int y_stop  = std::floor(top_slope*x);
-            for (int y = y_start; y <= y_stop && y <= m_center; ++y) {
+            for (int y = y_start; y <= y_stop && y <= m_size; ++y) {
 
                 // calculate slope from center to the center of the current coordinate
                 float slope = static_cast<float>(y)/static_cast<float>(x);
@@ -84,47 +93,49 @@ namespace trogue {
                 if (in_range) {
 
                     // shared by all
-                    node(m_center + trans_y, m_center + trans_x)->add(node(m_center + y, m_center + x));
-                    node(m_center + trans_y, m_center - trans_x)->add(node(m_center + y, m_center - x));
+                    node( oy,  ox)->add(node( y,  x));
+                    node( oy, -ox)->add(node( y, -x));
 
                     // shared by all not on diagonal axis
-                    if (!type_b) {
-                        node(m_center + trans_x, m_center + trans_y)->add(node(m_center + x, m_center + y));
-                        node(m_center - trans_x, m_center + trans_y)->add(node(m_center - x, m_center + y));
+                    if (oy != ox) {
+                        node( ox,  oy)->add(node( x,  y));
+                        node(-ox,  oy)->add(node(-x,  y));
                     }
 
                     // shared by all not on straight axis
-                    if (!type_a) {
-                        node(m_center - trans_y, m_center + trans_x)->add(node(m_center - y, m_center + x));
-                        node(m_center - trans_y, m_center - trans_x)->add(node(m_center - y, m_center - x));
+                    if (oy != 0) {
+                        node(-oy,  ox)->add(node(-y,  x));
+                        node(-oy, -ox)->add(node(-y, -x));
                     }
 
                     // shared by all not on any axis
-                    if (!type_a && !type_b) {
-                        node(m_center + trans_x, m_center - trans_y)->add(node(m_center + x, m_center - y));
-                        node(m_center - trans_x, m_center - trans_y)->add(node(m_center - x, m_center - y));
+                    if (oy != ox && oy != 0) {
+                        node( ox, -oy)->add(node( x, -y));
+                        node(-ox, -oy)->add(node(-x, -y));
                     }
                 }
             }
         }
     }
 
-    ShadowCast::Node* ShadowCast::node(int row, int col) const {
-        return &m_arr[row*(2*m_center + 1) + col];
+    ShadowCast::Node* ShadowCast::node(int y, int x) const {
+        int row = m_size + y;
+        int col = m_size + x;
+        return &m_arr[row*(2*m_size + 1) + col];
     }
 
     ShadowCast::ShadowCast(int length) : ShadowCast(length, true) { }
 
     ShadowCast::ShadowCast(int length, bool strict)
-        : m_center(length),
+        : m_size(length),
         m_strict(strict),
-        m_arr(new Node[(2*length + 1)*(2*length + 1)]) {
+        m_arr(new Node[(2*m_size + 1)*(2*m_size + 1)]) {
 
             // calculate shadows for all nodes in the first quardrant. (which will populate
             // the whole matrix)
-            for (int col = m_center + 1; col <= m_center*2; ++col) {
-                for (int row = m_center; row <= col || row == 0; ++row) {
-                    calculate(row, col);
+            for (int x = 1; x <= m_size; ++x) {
+                for (int y = 0; y <= x; ++y) {
+                    calculate(y, x);
                 }
             }
 
@@ -135,10 +146,8 @@ namespace trogue {
     }
 
     void ShadowCast::set(int y, int x) {
-        int row = y + m_center;
-        int col = x + m_center;
-        Node * n = node(row, col);
-        if (!(n->m_shaded)) {
+        Node * n = node(y, x);
+        if (!n->m_obstacle) {
             n->m_obstacle = true;
             n->m_shaded = true;
             for (Node* c : n->m_children) {
@@ -148,20 +157,15 @@ namespace trogue {
     }
 
     bool ShadowCast::get(int y, int x) const {
-        int row = y + m_center;
-        int col = x + m_center;
-        return !(node(row, col)->m_shaded);
+        return !node(y, x)->m_shaded;
     }
 
     void ShadowCast::reset(int range) {
-        for (int y = 0; y < 2*m_center + 1; ++y) {
-            for (int x = 0; x < 2*m_center + 1; ++x) {
+        for (int y = -m_size; y <= m_size; ++y) {
+            for (int x = -m_size; x <= m_size; ++x) {
                 Node* n = node(y, x);
-                int trans_y = y - m_center;
-                int trans_x = x - m_center;
                 n->m_obstacle = false;
-
-                if (trans_x*trans_x + trans_y*trans_y >= range*range) {
+                if (y*y + x*x >= range*range) {
                     n->m_shaded = true;
                 } else {
                     n->m_shaded = false;
@@ -171,10 +175,10 @@ namespace trogue {
     }
 
     void ShadowCast::print() {
-        for (int y = 0; y < 2*m_center + 1; ++y) {
-            for (int x = 0; x < 2*m_center + 1; ++x) {
+        for (int y = -m_size; y <= m_size; ++y) {
+            for (int x = -m_size; x <= m_size; ++x) {
                 Node* n = node(y, x);
-                if (y == m_center && x == m_center) {
+                if (y == 0 && x == 0) {
                     std::cout << "@";
                 } else if (n->m_obstacle) {
                     std::cout << "o";

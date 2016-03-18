@@ -8,6 +8,14 @@ namespace trogue {
     class ShadowCast {
     private:
 
+        struct Slope {
+            static const float mods[3][4];
+            float top;
+            float center;
+            float bottom;
+            Slope(int y, int x);
+        };
+
         struct Node {
             std::vector<Node*>  m_children;
             bool                m_obstacle = false;
@@ -15,7 +23,7 @@ namespace trogue {
             void add(Node*);
         };
 
-        int     m_center;
+        int     m_size;
         bool    m_strict;
         Node*   m_arr;
 
