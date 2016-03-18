@@ -35,10 +35,14 @@
 
 namespace trogue {
 
+    // when calculating shadows in the first quadrant in the picture above, rays
+    // cast from the center should target the left top and bottom corner of a grid
+    // cell if the target cell if the target cell is on a straight axis (type a in 
+    // the picture) or the top right and bottom left corner if not.
     const float ShadowCast::Slope::mods[3][4] = {
-        {-0.5f, -0.5f, 0.5f,  0.5f},
-        {-0.5f, -0.5f, 0.5f, -0.5f},
-        {-0.5f,  0.5f, 0.5f, -0.5f}
+        { 0.5f,  0.5f, -0.5f, -0.5f},
+        { 0.5f, -0.5f, -0.5f, -0.5f},
+        { 0.5f, -0.5f, -0.5f,  0.5f}
     };
 
     ShadowCast::Slope::Slope(int y, int x) {
@@ -58,60 +62,37 @@ namespace trogue {
 
     void ShadowCast::calculate(int oy, int ox) {
 
-        // when calculating shadows in the first quadrant in the picture above, rays
-        // cast from the center should target the left top and bottom corner of a grid
-        // cell if the target cell if the target cell is on a straight axis (type a in 
-        // the picture) or the top right and bottom left corner if not.
-        static float mods[2][4] = {{0.5f, -0.5f, -0.5f, -0.5f},{0.5f, -0.5f, -0.5f, 0.5f}};
-        float* mod;
+        Slope o_slope(oy, ox);
 
-        if (oy == 0) {
-            mod = mods[0];
-        } else {
-            mod = mods[1];
-        }
+        for (int tx = ox; tx <= m_size; ++tx) {
+            int y_start = std::ceil(o_slope.bottom*tx);
+            int y_stop  = std::floor(o_slope.top*tx);
+            for (int ty = y_start; ty <= y_stop && ty <= m_size; ++ty) {
 
-        float top_slope =    (static_cast<float>(oy) + mod[0])/(static_cast<float>(ox) + mod[1]);
-        float bottom_slope = (static_cast<float>(oy) + mod[2])/(static_cast<float>(ox) + mod[3]);
+                Slope t_slope(ty, tx);
 
-        for (int x = ox; x <= m_size; ++x) {
-            int y_start = std::ceil(bottom_slope*x);
-            int y_stop  = std::floor(top_slope*x);
-            for (int y = y_start; y <= y_stop && y <= m_size; ++y) {
-
-                // calculate slope from center to the center of the current coordinate
-                float slope = static_cast<float>(y)/static_cast<float>(x);
-
-                // check if coordinate in the shadow of the current node depending on settings
-                bool in_range;
-                if (m_strict) {
-                    in_range = slope < top_slope && slope > bottom_slope;
-                } else {
-                    in_range = slope <= top_slope && slope >= bottom_slope;
-                } 
-
-                if (in_range) {
+                if (t_slope.center < o_slope.top && t_slope.center > o_slope.bottom) {
 
                     // shared by all
-                    node( oy,  ox)->add(node( y,  x));
-                    node( oy, -ox)->add(node( y, -x));
+                    node( oy,  ox)->add(node( ty,  tx));
+                    node( oy, -ox)->add(node( ty, -tx));
 
                     // shared by all not on diagonal axis
                     if (oy != ox) {
-                        node( ox,  oy)->add(node( x,  y));
-                        node(-ox,  oy)->add(node(-x,  y));
+                        node( ox,  oy)->add(node( tx,  ty));
+                        node(-ox,  oy)->add(node(-tx,  ty));
                     }
 
                     // shared by all not on straight axis
                     if (oy != 0) {
-                        node(-oy,  ox)->add(node(-y,  x));
-                        node(-oy, -ox)->add(node(-y, -x));
+                        node(-oy,  ox)->add(node(-ty,  tx));
+                        node(-oy, -ox)->add(node(-ty, -tx));
                     }
 
                     // shared by all not on any axis
                     if (oy != ox && oy != 0) {
-                        node( ox, -oy)->add(node( x, -y));
-                        node(-ox, -oy)->add(node(-x, -y));
+                        node( ox, -oy)->add(node( tx, -ty));
+                        node(-ox, -oy)->add(node(-tx, -ty));
                     }
                 }
             }
