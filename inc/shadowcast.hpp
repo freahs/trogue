@@ -30,6 +30,13 @@ namespace trogue {
         Node*   m_arr;
 
         void scan(int, int);
+        void scan2(int, int);
+        void build();
+        void scanTop(int, int);
+        void scanBottom(int, int);
+        void scanLeft(int, int);
+        void scanRight(int, int);
+
         Node* get(int, int) const;
         float slope(float, float, float, float);
 

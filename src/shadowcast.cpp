@@ -3,6 +3,7 @@
 #include "../inc/format.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <unordered_set>
 #include <vector>
 #include <iostream>
@@ -39,60 +40,86 @@ namespace trogue {
         return std::find(m_children.begin(), m_children.end(), node) != m_children.end();
     }
 
-    float ShadowCast::slope(float y1, float x1, float y2, float x2) {
-        return (x1 - x2) / (y1 - y2);
-    }
+    /*
 
-    void ShadowCast::scan(int row, int col) {
+    \4444444444444/
+    3\44444444444/1
+    33\444444444/11
+    333\4444444/111
+    3333\44444/1111
+    33333\444/11a11
+    333333\4/111111
+    3333333@1111111
+    333333/2\111111
+    33333/222\11111
+    3333/22222\1111
+    333/2222222\111
+    33/222222222\11
+    3/22222222222\1
+    /2222222222222\
 
-        // temp child container for uniqueness
-        std::unordered_set<Node*> temp_children;
+    3 = 7
+    4 = 6
 
-        // The node which shadow are calculated
-        Node* node = get(row, col);
+    5 = 4
 
-        // default ranges for iteration
-        int y_start = 0, y_stop = m_height;
-        int x_start = 0, x_stop = m_width;
+    1   node( y, x) a = (-2, 5)
+    2   node(-y, x) b = ( 2, 5)
+    3   node(-x,-y) c = (-5, 2)
+    4   node(-x, y) d = (-5,-2)
+    5   node(-y,-x) e = ( 2,-5)
+    6   node( y,-x) f = (-2,-5)
+    7   node( x, y) g = ( 5,-2)
+    8   node( x,-y) g = ( 5, 2)
 
-        float row_mod = 0, col_mod = 0;
+    */
 
-        // Translate to 0-centered coordinates to identify region of the node
+    void ShadowCast::scan2(int row, int col) {
+
         int trans_y = row - m_center;
         int trans_x = col - m_center;
 
-        // set parameters according to region of the node
-        if (std::abs(trans_x) <= std::abs(trans_y)) {
-            if (trans_y < 0)    { y_stop = row;  col_mod = 0.5f; }  // top
-            else                { y_start = row; col_mod = -0.5f; } // bottom
-        } else if (trans_x < 0) { x_stop = col;  row_mod = 0.5f; } // left
-        else                    { x_start = col; row_mod = 0.5f; }  // right
 
-        // calculate slope from center. the slopes (rays) are modified according to
-        // their region.  
-        float slope_a = slope(m_center, m_center, row + row_mod, col + col_mod);
-        float slope_b = slope(m_center, m_center, row + row_mod*(-1.0f), col + col_mod*(-1.0f));
+        if (trans_y == 0) {
+            std::cout << "trans y == 0" << std::endl;
+            float top_slope =    (static_cast<float>(trans_y) + 0.5f)/(static_cast<float>(trans_x) - 0.5f);
+            float bottom_slope = (static_cast<float>(trans_y) - 0.5f)/(static_cast<float>(trans_x) - 0.5f);
+            for (int x = trans_x; x <= m_center; ++x) {
+                for (int y = -x; y <= x; ++y) {
+                    float slope = static_cast<float>(y)/static_cast<float>(x);
+                    if (slope < top_slope && slope > bottom_slope) {
+                    std::cout << top_slope << " " << slope << " " << bottom_slope << std::endl;
+                        get(m_center + trans_y, m_center + trans_x)->add(get(m_center + y, m_center + x)); // Q1
+                        get(m_center + trans_y, m_center - trans_x)->add(get(m_center + y, m_center - x)); // Q2
+                        get(m_center + trans_x, m_center - trans_y)->add(get(m_center + x, m_center - y)); // Q3
+                        get(m_center - trans_x, m_center - trans_y)->add(get(m_center - x, m_center - y)); // Q4
+                    }
+                }
+            }
+            return;
+        }
 
-        // iterate over the nodes that are behind the node relative from the center
-        for (int y = y_start; y >= 0 && y < y_stop; ++y) {
-            for (int x = x_start; x >= 0 && x < x_stop; ++x) {
-                //if (temp_children.find(get(y,x)) != temp_children.end()) break;
+        float top_slope =    (static_cast<float>(trans_y) + 0.5f)/(static_cast<float>(trans_x) - 0.5f);
+        float bottom_slope = (static_cast<float>(trans_y) - 0.5f)/(static_cast<float>(trans_x) + 0.5f);
 
-               float center_slope = slope(m_center, m_center, y, x);
+        for (int y = trans_y; y <= m_center; ++y) {
+            for (int x = trans_x; x <= m_center; ++x) {
+                float slope = static_cast<float>(y)/static_cast<float>(x);
+                if (slope < top_slope && slope > bottom_slope) {
+                    get(m_center + trans_y, m_center + trans_x)->add(get(m_center + y, m_center + x)); // Q1
+                    get(m_center - trans_y, m_center + trans_x)->add(get(m_center - y, m_center + x)); // Q2
+                    get(m_center + trans_y, m_center - trans_x)->add(get(m_center + y, m_center - x)); // Q3
+                    get(m_center - trans_y, m_center - trans_x)->add(get(m_center - y, m_center - x)); // Q4
+                    if (trans_y != trans_x) {
+                        get(m_center + trans_x, m_center - trans_y)->add(get(m_center + x, m_center - y)); // Q5
+                        get(m_center - trans_x, m_center - trans_y)->add(get(m_center - x, m_center - y)); // Q6
+                        get(m_center - trans_x, m_center + trans_y)->add(get(m_center - x, m_center + y)); // Q7
+                        get(m_center + trans_x, m_center + trans_y)->add(get(m_center + x, m_center + y)); // Q8
+                    }
 
-                // if the current tile are inside the two slopes (ie if its in the shadow of the node
-                // beeing processed) add it to that nodes child nodes
-                if (center_slope > slope_a && center_slope < slope_b) {
-                    temp_children.insert(get(y,x));
-                    //node->add(get(y,x));
                 }
             }
         }
-
-        for (auto n : temp_children) {
-            node->add(n);
-        }
-
     }
 
     ShadowCast::Node* ShadowCast::get(int row, int col) const {
@@ -104,12 +131,15 @@ namespace trogue {
     m_height(length*2 + 1),
     m_width(m_height),
     m_arr(new Node[m_height*m_width]) {
-        for (int row = 0; row < m_width; ++row) {
-            for (int col = 0; col < m_height; ++col) {
-                scan(row, col);
+        for (int row = m_center + 1; row <= m_center*2; ++row) {
+            for (int col = m_center + 1; col <= row || row == 0; ++col) {
+                scan2(row, col);
             }
         }
-        reset(length);
+
+        for (int col = m_center + 1; col <= m_center*2; ++col) {
+            scan2(m_center, col);
+        }
     }
 
     ShadowCast::~ShadowCast() {
