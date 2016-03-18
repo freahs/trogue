@@ -76,14 +76,51 @@ namespace trogue {
 
     void ShadowCast::scan2(int row, int col) {
 
+        static float mods[2][4] = {{0.5f, -0.5f, -0.5f, -0.5f},{0.5f, -0.5f, -0.5f, 0.5f}};
+        float* mod;
+
         int trans_y = row - m_center;
         int trans_x = col - m_center;
 
+        if (trans_y == 0) {
+            mod = mods[0];
+        } else {
+            mod = mods[1];
+        }
 
+        float top_slope =    (static_cast<float>(trans_y) + mod[0])/(static_cast<float>(trans_x) + mod[1]);
+        float bottom_slope = (static_cast<float>(trans_y) + mod[2])/(static_cast<float>(trans_x) + mod[3]);
+
+
+        for (int x = trans_x; x <= m_center; ++x) {
+            int y_start = std::ceil(bottom_slope*x);
+            int y_stop  = std::floor(top_slope*x);
+            for (int y = y_start; y <= y_stop && y <= m_center; ++y) {
+                float slope = static_cast<float>(y)/static_cast<float>(x);
+                if (slope < top_slope && slope > bottom_slope) {
+                    get(m_center + trans_y, m_center + trans_x)->add(get(m_center + y, m_center + x));
+                    get(m_center + trans_y, m_center - trans_x)->add(get(m_center + y, m_center - x));
+
+                    if(trans_y == 0 || trans_y != trans_x) {
+                        get(m_center + trans_x, m_center - trans_y)->add(get(m_center + x, m_center - y));
+                        get(m_center - trans_x, m_center - trans_y)->add(get(m_center - x, m_center - y));
+                    }
+
+                    if (trans_y != 0) {
+                        get(m_center - trans_y, m_center + trans_x)->add(get(m_center - y, m_center + x));
+                        get(m_center - trans_y, m_center - trans_x)->add(get(m_center - y, m_center - x));
+                    }
+
+                    if (trans_y != 0 && trans_y != trans_x) {
+                        get(m_center - trans_x, m_center + trans_y)->add(get(m_center - x, m_center + y));
+                        get(m_center + trans_x, m_center + trans_y)->add(get(m_center + x, m_center + y));
+                    }
+                }
+            }
+        }
+        /*
         if (trans_y == 0) {
             std::cout << "trans y == 0" << std::endl;
-            float top_slope =    (static_cast<float>(trans_y) + 0.5f)/(static_cast<float>(trans_x) - 0.5f);
-            float bottom_slope = (static_cast<float>(trans_y) - 0.5f)/(static_cast<float>(trans_x) - 0.5f);
             for (int x = trans_x; x <= m_center; ++x) {
                 for (int y = -x; y <= x; ++y) {
                     float slope = static_cast<float>(y)/static_cast<float>(x);
@@ -99,8 +136,6 @@ namespace trogue {
             return;
         }
 
-        float top_slope =    (static_cast<float>(trans_y) + 0.5f)/(static_cast<float>(trans_x) - 0.5f);
-        float bottom_slope = (static_cast<float>(trans_y) - 0.5f)/(static_cast<float>(trans_x) + 0.5f);
 
         for (int y = trans_y; y <= m_center; ++y) {
             for (int x = trans_x; x <= m_center; ++x) {
@@ -120,6 +155,7 @@ namespace trogue {
                 }
             }
         }
+        */
     }
 
     ShadowCast::Node* ShadowCast::get(int row, int col) const {
