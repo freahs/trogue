@@ -1,74 +1,61 @@
 #ifndef TROGUE_SCENE_H
 #define TROGUE_SCENE_H
 
-#include "format.hpp"
-#include "tile.hpp"
-#include "tilestack.hpp"
+#include "tyra/tyra.hpp"
 
-#include <ostream>
+#include <array>
+#include <set>
 #include <vector>
 
 namespace trogue {
 
-    class Scene {
-        private:
-            size_t m_width;
-            size_t m_height;
+    // Usage:
+    // When an entity is activated in the world, add it to the scene.
+    // When an entity moves in the world, remove it and add it again
+    // When an entity is inactivated in the world, remove it.
+    //
+    // Layers:
+    // 0 Floor and walls
+    // 1 Items
+    // 2 Characters
+    // 3 Effects
 
-            std::vector<std::vector<TileStack>> m_tiles;
-            std::vector<Tile>                   m_empty;
+    static const size_t num_layers = 4;
+
+    class Scene {
+    private:
+        class EntityStack {
+        private:
+            std::set<tyra::EntityId>                    m_entities;
+            std::set<tyra::EntityId>::iterator    m_current;
 
         public:
-            Scene(size_t width, size_t height)
-                : m_width(width), m_height(height), m_tiles(height, std::vector<TileStack>(width)) {
-                    m_empty.push_back(Tile::empty);
-                }
+            EntityStack();
+            void update();
+            bool add(tyra::EntityId);
+            bool remove(tyra::EntityId);
+            tyra::EntityId get() const;
+        };
 
-            void add(int x, int y, const Tile& tile) {
-                m_tiles[y][x].add(tile);
-            }
+        typedef std::array<EntityStack, num_layers> LayerStack;
 
-            void empty(Tile tile) {
-                m_empty[0] = tile;
-            }
+        size_t                      m_height;
+        size_t                      m_width;
+        std::vector<LayerStack>     m_stacks;
 
-            void emptyAlternative(Tile tile) {
-                m_empty.push_back(tile);
-            }
+        const EntityStack& getStack(int row, int col, int layer) const;
+        EntityStack& getStack(int row, int col, int layer);
 
-            const Tile& get(int x, int y) const {
-                if(x < 0 || x >= static_cast<int>(m_width) || y < 0 || y >= static_cast<int>(m_height)) {
-                    int alt_ratio = 7;
-                    int empty = (y*width() + x) % (m_empty.size() + alt_ratio);
-                    if (empty < alt_ratio) {
-                        return m_empty[0];
-                    } else {
-                        return m_empty[empty - alt_ratio];
-                    }
-                } else {
-                    return m_tiles[y][x].get();
-                }
-            }
+    public:
+        Scene(int height, int width);
 
-            void printRow(std::ostream& os, const Format* prev_format, int y, int x1, int x2) const {
-                if (y < 0 || y >= static_cast<int>(m_height)) {
-                    for (int x = x1; x <= x2; ++x) {
-                        Tile::empty.print(os, prev_format);
-                    }
-                    return;
-                }
+        void update();
+        void add(int row, int col, size_t layer, tyra::EntityId id);
+        void remove(int row, int col, size_t layer, tyra::EntityId id);
+        tyra::EntityId get(int row, int col, size_t layer) const;
 
-                for (int x = x1; x <= x2; ++x) {
-                    if (x < 0 || x >= static_cast<int>(m_width)) {
-                        Tile::empty.print(os, prev_format);
-                    } else {
-                        m_tiles[y][x].print(os, prev_format);
-                    }
-                }
-            }
-
-            size_t width() const { return m_width; }
-            size_t height() const { return m_height; }
+        size_t width() const  { return m_width; }
+        size_t height() const { return m_height; }
     };
 
 }
