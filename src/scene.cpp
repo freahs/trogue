@@ -50,24 +50,63 @@ namespace trogue {
         }
     }
 
-    Scene::Scene(int height, int width)
-        : m_height(height),
-        m_width(width),
-        m_stacks(m_height * m_width) {
+    Scene::Scene(Map map)
+        : m_center_y(-1), m_center_x(-1),
+        m_delta(0),
+        m_last_update(Time::now()),
+        m_stacks(map.height() * map.width()),
+        m_visited(map.height() * map.width(), false),
+        m_shadowcast(max_visibility_range),
+        m_map(map) {
         }
 
     Scene::EntityStack& Scene::getStack(int row, int col, int layer) {
-        return m_stacks[row*m_width + col][layer];
+        return m_stacks[row*width() + col][layer];
     }
 
     const Scene::EntityStack& Scene::getStack(int row, int col, int layer) const {
-        return m_stacks[row*m_width + col][layer];
+        return m_stacks[row*width() + col][layer];
     }
 
-    void Scene::update() {
-        for (LayerStack& layer : m_stacks) {
-            for (EntityStack& stack : layer) {
-                stack.update();
+    bool Scene::visible(int row, int col) const {
+        if (row > 0 && row < height() && col > 0 && col < height()) {
+            int rel_y = row - m_center_y;
+            int rel_x = col - m_center_x;
+            if (m_shadowcast.get(rel_y, rel_x)) {
+                m_visited[row*width() + col] = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void Scene::update(int y, int x) {
+        m_delta += std::chrono::duration_cast<Ms>(Time::now() - m_last_update).count();
+
+        if (m_center_y != y || m_center_x != x) {
+            m_center_y = y;
+            m_center_x = x;
+            m_shadowcast.reset(m_shadowcast.size());
+            for (int rel_y = -m_shadowcast.size(); rel_y <= m_shadowcast.size(); ++y) {
+                for (int rel_x = -m_shadowcast.size(); rel_x <= m_shadowcast.size(); ++x) {
+                    int row = m_center_y - rel_y;
+                    int col = m_center_x - rel_x;
+                    bool in_range = row > 0 && row < height() && col > 0 && col < height();
+                    if (!in_range || !m_map.visible(row, col)) {
+                        m_shadowcast.set(rel_y, rel_x);
+                    }
+                }
+            }
+
+        }
+
+        if (m_delta > tile_rotation_time) {
+            m_delta = m_delta - tile_rotation_time;
+
+            for (LayerStack& layer : m_stacks) {
+                for (EntityStack& stack : layer) {
+                    stack.update();
+                }
             }
         }
     }
@@ -84,6 +123,14 @@ namespace trogue {
 
     tyra::EntityId Scene::get(int row, int col, size_t layer) const {
         return getStack(row, col, layer).get();
+    }
+
+    int Scene::width() const {
+        return m_map.width();
+    }
+
+    int Scene::height() const {
+        return m_map.height();
     }
 
 }
