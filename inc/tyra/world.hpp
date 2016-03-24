@@ -19,6 +19,7 @@
 
 #include "entitymanager.hpp"
 
+#include <chrono>
 #include <map>
 
 namespace tyra {
@@ -28,33 +29,41 @@ namespace tyra {
     class SystemManager;
 
     class World {
-        private:
-            ComponentManager*	m_component_manager;
-            EntityManager*		m_entity_manager;
-            SystemManager*      m_system_manager;
-            bool				m_processing;
+    private:
+        typedef std::chrono::high_resolution_clock      Time;
+        typedef std::chrono::milliseconds               Ms;
+        typedef std::chrono::system_clock::time_point   TimePoint;
 
-            std::map<std::string, EntityId> m_tags;
 
-        protected:
-            virtual void preUpdate() { }
-            virtual void postUpdate() { }
+        ComponentManager*   m_component_manager;
+        EntityManager*      m_entity_manager;
+        SystemManager*      m_system_manager;
+        bool                m_processing;
+        TimePoint           m_prev_update;
+        int                 m_delta;
 
-        public:
-            World();
-            virtual ~World() = default;
+        std::map<std::string, EntityId> m_tags;
 
-            void start()            { m_processing = true; }
-            void stop()             { m_processing = false; }
-            bool processing() const { return m_processing; }
-            void update();
+    protected:
+        virtual void preUpdate() { }
+        virtual void postUpdate() { }
 
-            EntityManager& entity();
-            ComponentManager& component();
-            SystemManager& system();
+    public:
+        World();
+        ~World();
 
-            EntityId tag(const std::string&) const;
-            void tag(const std::string&, EntityId);
+        void start()            { m_processing = true; }
+        void stop()             { m_processing = false; }
+        bool processing() const { return m_processing; }
+        void update();
+
+        EntityManager& entity();
+        ComponentManager& component();
+        SystemManager& system();
+
+        EntityId tag(const std::string&) const;
+        void tag(const std::string&, EntityId);
+        int delta() const;
     };
 
 }

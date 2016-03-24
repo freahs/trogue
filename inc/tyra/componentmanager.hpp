@@ -27,6 +27,9 @@
 #include <unordered_set>
 #include <vector>
 
+
+#include <iostream>
+
 namespace tyra {
 
     const std::size_t MAX_COMPONENT_TYPES = UINT8_MAX;
@@ -67,23 +70,28 @@ namespace tyra {
 
     template <typename T> bool ComponentManager::valid(EntityId entity_id) const {
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::valid: T must be derived from Component");
-        return valid(entity_id, Type<Component>::id<T>());
+        TypeId type_id = Type<Component>::id<T>();
+        return valid(entity_id, type_id);
     }
 
     template <typename T> T& ComponentManager::get(EntityId entity_id) const {
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::get: T must be derived from Component");
-        return static_cast<T&>(*get(Type<Component>::id<T>(), entity_id));
+        TypeId type_id = Type<Component>::id<T>();
+        Component* component_ptr = get(entity_id, type_id);
+        return static_cast<T&>(*component_ptr);
     }
 
     template <typename T, typename... Args>	void ComponentManager::add(EntityId entity_id, Args&&... args)	{
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::add: T must be derived from Component");
-        T* ptr = new T{std::forward<Args>(args)...};
-        add(entity_id, Type<Component>::id<T>(), ptr);
+        T* component_ptr = new T{std::forward<Args>(args)...};
+        TypeId type_id = Type<Component>::id<T>();
+        add(entity_id, type_id, component_ptr);
     }
 
     template <typename T> void ComponentManager::remove(EntityId entity_id) {
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::remove: T must be derived from Component");
-        removeComponent(entity_id, Type<Component>::id<T>());
+        TypeId type_id = Type<Component>::id<T>();
+        remove(entity_id, type_id); 
     }
 
 }

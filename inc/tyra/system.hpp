@@ -19,49 +19,55 @@
 
 #include "componentmanager.hpp"
 #include "typeid.hpp"
+#include "vectormap.hpp"
 
 #include <bitset>
 #include <unordered_set>
 
+
 namespace tyra {
 
-    class Component;
+    struct Component;
     class World;
 
     class System {
-        private:
-            std::bitset<MAX_COMPONENT_TYPES>    m_require_one_components;
-            std::bitset<MAX_COMPONENT_TYPES>	m_require_all_components;
-            std::bitset<MAX_COMPONENT_TYPES>	m_exclude_components;
-            std::unordered_set<EntityId>		m_entities;
-            World*								m_world;
+    public:
+        typedef std::unordered_set<EntityId> Container;
 
-            void requireOne(TypeId);
-            void requireAll(TypeId);
-            void exclude(TypeId);
+    private:
+        std::bitset<MAX_COMPONENT_TYPES>    m_require_one_components;
+        std::bitset<MAX_COMPONENT_TYPES>    m_require_all_components;
+        std::bitset<MAX_COMPONENT_TYPES>    m_exclude_components;
+        Container                           m_entities;
+        World*                              m_world;
 
-            void addEntity(TypeId);
-            void removeEntity(TypeId);
+        void requireOne(TypeId);
+        void requireAll(TypeId);
+        void exclude(TypeId);
 
-        protected:
-            World& world() const { return *m_world; }
-            template<typename T> void requireOne();
-            template<typename T> void requireAll();
-            template<typename T> void exclude();
+        void addEntity(EntityId);
+        void removeEntity(EntityId);
 
-            virtual void process(const std::unordered_set<EntityId>&) { }
+    protected:
+        World& world() const { return *m_world; }
+        template<typename T> void requireOne();
+        template<typename T> void requireAll();
+        template<typename T> void exclude();
 
-            virtual void entityAdded(EntityId) { }
-            virtual void entityRemoved(EntityId) { }
+        virtual void process(const Container&) { }
 
-        public:
-            virtual ~System() { }
+        virtual void entityAdded(EntityId) { }
+        virtual void entityRemoved(EntityId) { }
 
-            void world(World& world) { m_world = &world; }
-            void update();
-            size_t size() const { return m_entities.size(); }
+    public:
 
-            void entityUpdated(EntityId, std::bitset<MAX_COMPONENT_TYPES>&);
+        virtual ~System() { }
+
+        void world(World& world) { m_world = &world; }
+        void update();
+        size_t size() const { return m_entities.size(); }
+
+        void entityUpdated(EntityId, std::bitset<MAX_COMPONENT_TYPES>&);
     };
 
     template<typename T> void System::requireOne() {
