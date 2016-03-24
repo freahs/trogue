@@ -6,7 +6,6 @@
 #include "map.hpp"
 #include "shadowcast.hpp"
 
-#include <array>
 #include <chrono>
 #include <set>
 #include <vector>
@@ -24,9 +23,8 @@ namespace trogue {
     // 2 Characters
     // 3 Effects
 
-    static const size_t num_layers = 4;
-    static const int    max_visibility_range = 20;
-    static const int    tile_rotation_time = 1000;
+    static const int    s_max_visibility_range = 20;
+    static const int    s_tile_rotation_time = 1000; // in milliseconds
 
     class Scene {
     private:
@@ -34,10 +32,13 @@ namespace trogue {
         typedef std::chrono::milliseconds               Ms;
         typedef std::chrono::system_clock::time_point   TimePoint;
 
+        // EntityStack keeps track of the content of a tile which id divided into layers.
+        // If there are multiple entities occupying the same tile, these are rotated with
+        // fixed intervals, which is handeled by the Scene.
         class EntityStack {
         private:
-            std::set<tyra::EntityId>            m_entities;
-            std::set<tyra::EntityId>::iterator  m_current;
+            std::set<tyra::EntityId>                    m_entities;
+            std::set<tyra::EntityId>::const_iterator    m_current;
 
         public:
             EntityStack();
@@ -47,13 +48,12 @@ namespace trogue {
             tyra::EntityId get() const;
         };
 
-        typedef std::array<EntityStack, num_layers> LayerStack;
-
+        int                         m_num_layers;
         int                         m_center_y;
         int                         m_center_x;
         int                         m_delta;
         TimePoint                   m_last_update;
-        std::vector<LayerStack>     m_stacks;
+        std::vector<EntityStack>    m_stacks;
         mutable std::vector<bool>   m_visited;
         ShadowCast                  m_shadowcast;
         Map                         m_map;
@@ -62,18 +62,24 @@ namespace trogue {
         EntityStack& getStack(int row, int col, int layer);
 
     public:
-        Scene(Map map);
+        Scene(Map map, int num_layers);
 
         bool visible(int row, int col) const;
         bool visited(int row, int col) const;
 
-        void update(int y, int x);
-        void add(int row, int col, size_t layer, tyra::EntityId id);
-        void remove(int row, int col, size_t layer, tyra::EntityId id);
-        tyra::EntityId get(int row, int col, size_t layer) const;
+        void update(int y, int x, int range);
+        void add(int row, int col, int layer, tyra::EntityId id);
+        void remove(int row, int col, int layer, tyra::EntityId id);
+        tyra::EntityId get(int row, int col, int layer) const;
 
-        int width() const; 
+        int width() const;
         int height() const;
+        int layers() const;
+
+        int centerY() const;
+        int centerX() const;
+
+        bool inRange(int y, int x) const;
 
         void print() const;
     };
