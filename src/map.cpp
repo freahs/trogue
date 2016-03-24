@@ -13,6 +13,10 @@ namespace trogue {
         m_walkable(m_height*m_width, false) {
         }
 
+    bool Map::inRange(int y, int x) const {
+        return y >= 0 && y < height() && x >= 0 && x < width();
+    }
+
     void Map::tile(int y, int x, int tile) {
         m_tiles[y*width() + x] = tile;
     }
@@ -68,6 +72,7 @@ namespace trogue {
                     if (map().visible(y, x) && !visited[y*map().width() + x]) {
                         visited[y*map().width() + x] = true;
                         is_first = false;
+                        /*
                         if (inRange(y-1, x-1)) { queue.push_back({y-1, x-1}); }
                         if (inRange(y-1, x))   { queue.push_back({y-1, x}); }
                         if (inRange(y-1, x+1)) { queue.push_back({y-1, x+1}); }
@@ -76,6 +81,7 @@ namespace trogue {
                         if (inRange(y+1, x-1)) { queue.push_back({y+1, x-1}); }
                         if (inRange(y+1, x))   { queue.push_back({y+1, x}); }
                         if (inRange(y+1, x-1)) { queue.push_back({y+1, x+1}); }
+                        */
                     } else if (!map().visible(y, x) &&
                                !visited[y*map().width()] && !is_first) {
                         visited[y*map().width() + x] = true;
@@ -87,9 +93,6 @@ namespace trogue {
         }
     }
 
-    bool MapBuilder::inRange(int y, int x) const {
-        return y >= 0 && y < map().height() && x >= 0 && x < map().width();
-    }
 
     Map& MapBuilder::map() {
         return m_map;
@@ -101,7 +104,7 @@ namespace trogue {
 
 
     const Map& MapBuilder::finalize() {
-        floodFill();
+        //floodFill();
         return m_map;
     }
 
@@ -139,7 +142,7 @@ namespace trogue {
                     for (int rel_x = -2; rel_x <= 2; ++rel_x) {
                         int adj_y = y + rel_y;
                         int adj_x = x + rel_x;
-                        if (!inRange(adj_y, adj_x) || isWall(adj_y, adj_x)) {
+                        if (!map().inRange(adj_y, adj_x) || isWall(adj_y, adj_x)) {
                             if (std::abs(rel_y) < 2 && std::abs(rel_x) < 2) {
                                 ++r1_adj;
                             }
@@ -163,6 +166,7 @@ namespace trogue {
         for (int y = 0; y < map().height(); ++y) {
             for (int x = 0; x <map().width(); ++x) {
                 map().visible(y, x, !isWall(y, x));
+                map().walkable(y, x, !isWall(y, x));
             }
         }
         return MapBuilder::finalize();

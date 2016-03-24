@@ -27,6 +27,7 @@ namespace trogue {
         Map(int height, int width);
 
     public:
+        bool inRange(int y, int x) const;
         void tile(int y, int x, int tile);
         int tile(int y, int x) const;
         void visible(int y, int x, bool visible);
@@ -42,11 +43,9 @@ namespace trogue {
     class MapBuilder {
     private:
         Map    m_map;
-
         void floodFill();
 
     protected:
-        bool inRange(int y, int x) const;
         Map& map();
         const Map& map() const;
 
@@ -67,9 +66,9 @@ namespace trogue {
     public:
         AutomataMapBuilder(int height, int width, float init_wall_prob);
 
-        void print();
         void build(int r1_limit, int r2_limit);
         const Map& finalize() override;
+        void print();
     };
 
 }
