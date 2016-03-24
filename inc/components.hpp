@@ -7,21 +7,42 @@
 
 namespace trogue {
 
-    struct PositionComponent {
-        int x, y;
-        PositionComponent(int x, int y) : x(x), y(y) { }
+    struct PlayerComponent : public tyra::Component { };
+
+    struct SightComponent : public tyra::Component {
+        int range;
+        SightComponent(int range) : range(range) { }
     };
 
-    struct DisplayComponent {
+    struct PositionComponent : public tyra::Component {
+        int y, x;
+        PositionComponent(int y, int x) : y(y), x(x) { }
+    };
+
+    struct MovementComponent : public tyra::Component {
+        int vy, vx;
+        MovementComponent(int vy, int vx) : vy(vy), vx(vx) { } 
+    };
+
+    struct TileComponent : public tyra::Component {
         std::string     symbol;
         int             color;
+        int             blocked_color;
         int             bg_color;
+        int             blocked_bg_color;
         int             layer;
 
-        DisplayComponent(std::string symbol, int color, int bg_color, int layer)
-        : symbol(symbol), color(color), bg_color(bg_color), layer(layer) {
-        } 
+        TileComponent(std::string symbol,
+                      int color, int blocked_color,
+                      int bg_color, int blocked_bg_color, int layer)
+            : symbol(symbol),
+            color(color), blocked_color(blocked_color),
+            bg_color(bg_color), blocked_bg_color(blocked_bg_color),
+            layer(layer) {
+            } 
     };
+
 }
+
 
 #endif
