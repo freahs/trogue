@@ -17,14 +17,14 @@ namespace trogue {
         };
 
         struct Node {
-            std::vector<Node*>  m_children;
-            bool                m_obstacle = false;
-            bool                m_shaded = false;
-            void add(Node*);
+            std::vector<Node*>  m_part_children;
+            std::vector<Node*>  m_full_children;
+            bool                m_full = false;
+            bool                m_part = false;
+            void add(Node*, bool);
         };
 
         int     m_size;
-        bool    m_strict;
         Node*   m_arr;
 
         Node* node(int, int) const;
@@ -32,13 +32,14 @@ namespace trogue {
 
     public:
         ShadowCast(int);
-        ShadowCast(int, bool);
         ~ShadowCast();
 
         void set(int, int);
-        bool get(int, int) const;
+        bool visible(int, int) const;
         void reset(int);
-        void print();
+        int size() const;
+
+        void print() const;
     };
 
 }
