@@ -7,13 +7,13 @@ BIN_DIR=bin
 LIB_DIR=lib
 
 RELEASE_FLAGS=-DNDEBUG
-DEBUG_FLAGS=
+DEBUG_FLAGS=#-Q
 
-_OBJ =
+_OBJ = shadowcast.o scene.o movementsystem.o map.o tilesystem.o playersystem.o xterm_display.o
 OBJ = $(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 #fdiagnostics requirec gcc 4.9+
-CC_FLAGS=-fdiagnostics-color=always -std=c++11 -Wall -pedantic -pthread
+CC_FLAGS=-fdiagnostics-color=always -std=c++11 -Wall -pedantic -pthread $(CFLAGS)
 
 CC=g++
 
@@ -40,5 +40,6 @@ clean:
 	rm -f $(BIN_DIR)/*
 	cp ../tyra/lib/libtyra.a ./lib/
 	cp ../tyra/inc/* ./inc/tyra/
+	cp ../ansi_format/inc/ansi_format.hpp ./inc/
 
 lib:
