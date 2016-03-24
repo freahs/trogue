@@ -1,9 +1,4 @@
 #define _XOPEN_SOURCE_EXTENDED
-#include <ncursesw/ncurses.h>
-#include <locale.h>
-#include <stdio.h>
-#include <signal.h>
-#include <sys/ioctl.h>
 #include "../inc/components.hpp"
 #include <iostream>
 #include <string>
@@ -12,51 +7,103 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include "../inc/display.hpp"
-#include "../inc/format.hpp"
-#include "../inc/scene.hpp"
-#include "../inc/tile.hpp"
-#include "../inc/tilestack.hpp"
-#include "../inc/input.hpp"
+#include "shadowcast.hpp"
+#include "map.hpp"
+#include "input.hpp"
+#include "scene.hpp"
+#include "tilesystem.hpp"
+#include "movementsystem.hpp"
+#include "playersystem.hpp"
 
-void makeScene(trogue::Scene& scene) {
-    scene.empty(trogue::Tile(trogue::Format(false, false, false, 234, 234), " ", 1));
-    scene.emptyAlternative(trogue::Tile(trogue::Format(false, false, false, 238, 234), ".", 1));
-    for (size_t y = 0; y < scene.height(); ++y){
-        for (size_t x = 0; x < scene.width(); ++x) {
-            std::stringstream ss;
-            ss << std::hex << (x*y % 16);
-            scene.add(x, y, trogue::Tile(trogue::Format(false, false, false, x, y), ss.str(), 1));
-        }
-    }
-}
+typedef std::chrono::high_resolution_clock      Time;
+typedef std::chrono::milliseconds               Ms;
+typedef std::chrono::system_clock::time_point   TimePoint;
 
 int main() {
-    struct winsize ws;
-    ioctl(0, TIOCGWINSZ, &ws);
-    trogue::Scene scene(16, 16);
-    makeScene(scene);
-    trogue::Display * display = trogue::Display::instance();
-    int width = 20;
-    int height = 10;
 
-    int x = 1;
-    int y = 1;
 
-    while (x < (int) scene.width() - 1) {
-        display->draw(++x, y, width, height, scene);
+    int width = 50;
+    int height = 50;
+    // trogue::AutomataMap map(size*2, size*2);
+    // map.generate(0.4f);
+    trogue::AutomataMapBuilder map_builder(height*2, width*2, 0.4f);
+    for (int i = 0; i < 0; ++i) {
+        map_builder.build(5, 1);
+    }
+    for (int i = 0; i < 3; ++i) {
+        map_builder.build(5, -1);
     }
 
-    while (y < (int) scene.height() - 1) {
-        display->draw(x, ++y, width, height, scene);
+    trogue::Map map = map_builder.finalize(); 
+    trogue::Scene scene(map, 4);
+
+    tyra::World world;
+    world.system().add<trogue::MovementSystem>(scene);
+    world.system().add<trogue::PlayerSystem>(scene);
+    world.system().add<trogue::TileSystem>(scene, *trogue::Display::instance(), height, width);
+
+
+    for (int y = 0; y < map.height(); ++y) {
+        for (int x = 0; x < map.width(); ++x) {
+            tyra::EntityId id = world.entity().create();
+            world.component().add<trogue::PositionComponent>(id, y, x);
+            if (map.visible(y, x)){
+                world.component().add<trogue::TileComponent>(id, ".", 250, 240, -1, -1, 0);
+            } else {
+                world.component().add<trogue::TileComponent>(id, "X", 250, 240, -1, -1, 0);
+            }
+        }
     }
 
-    while (x > 0) {
-        display->draw(--x, y, width, height, scene);
+    auto pid = world.entity().create();
+    world.component().add<trogue::PositionComponent>(pid, scene.height()/2, scene.width()/2);
+    world.component().add<trogue::TileComponent>(pid, "@", 3, 3, -1, -1, 1);
+    world.component().add<trogue::SightComponent>(pid, 20);
+    world.component().add<trogue::PlayerComponent>(pid);
+    world.tag("PLAYER", pid);
+
+
+    trogue::Input input;
+    trogue::Key res = trogue::Key::NONE;
+
+    world.start();
+    while (res != trogue::Key::Q) {
+        if (input.has()) {
+            int vy = 0;
+            int vx = 0;
+            res = input.get();
+            if      (res == trogue::Key::UP)    { vy = -1; }
+            else if (res == trogue::Key::DOWN)  { vy = 1; }
+            else if (res == trogue::Key::LEFT)  { vx = -1; }
+            else if (res == trogue::Key::RIGHT) { vx = 1; }
+            world.component().add<trogue::MovementComponent>(pid, vy, vx);
+        }
+
+        world.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
     }
 
-    while (y > 0) {
-        display->draw(x, --y, width, height, scene);
+    /*
+    std::cout << "MAIN LOOP" << std::endl;
+    while (res != trogue::Key::Q) {
+        world.update();
+        if (input.has()) {
+            int vy = 0;
+            int vx = 0;
+            res = input.get();
+            if (res == trogue::Key::UP && y > 0) { vy = -1; }
+            else if (res == trogue::Key::DOWN && y < scene.height()) { vy = 1; }
+            else if (res == trogue::Key::LEFT && x > 0) { vx = -1; }
+            else if (res == trogue::Key::RIGHT && x < scene.width()) { vx = 1; }
+            world.component().add<trogue::MovementComponent>(pid, vy, vx);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
     }
+    */
+
+
+
+
 }
+
 
