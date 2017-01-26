@@ -1,192 +1,77 @@
-#include "../inc/shadowcast.hpp"
-
-#include <cmath>
-#include <vector>
+#include "shadowcast.hpp"
 #include <iostream>
-
-/*
-
-   -x, -y        x, -y
-   \66666666|77777777/
-   5\.......|......./8
-   5.\......a....../.8
-   5..\...c.|.c.../..8
-   5...\....|..../...8
-   5....b...|...b....8
-   5.....\..|../.....8
-   5..c...\.|./...c..8
-   5.......\|/.......8
-   --a------@------a--
-   4......./|\.......1
-   4..c.../.|.\...c..1
-   4...../..|..\.....1
-   4....b...|...b....1
-   4.../....|....\...1
-   4../...c.|.c...\..1
-   4./......a......\.1
-   4/.......|.......\1
-   /33333333|22222222\
-   -x, y          x, y
-
-   Shadows are precalculated by calculating all shadows for the first quadrant
-   and using symmetries to populate the other seven quadrants.
-
-*/
 
 namespace trogue {
 
-    // when calculating shadows in the first and eight quadrant in the picture above,
-    // rays cast from the center should target the left top and bottom corner of a grid
-    // cell if the target cell is on a straight axis (type a in the picture) or the top
-    // right and bottom left corner if its in the first quadrant and the top left, bottom
-    // right if its in the eight quadrant.
-
-    const float ShadowCast::Slope::mods[3][4] = {
-        { 0.5f,  0.5f, -0.5f, -0.5f},
-        { 0.5f, -0.5f, -0.5f, -0.5f},
-        { 0.5f, -0.5f, -0.5f,  0.5f}
+    const Shadowcast::Mod Shadowcast::mods[8] = {
+        {1,0,0,1}, {0,1,1,0}, {0,-1,1,0}, {-1,0,0,1},
+        {-1,0,0,-1}, {0,-1,-1,0}, {0,1,-1,0}, {1,0,0,-1}
     };
 
-    ShadowCast::Slope::Slope(int y, int x) {
-        const float* mod;
-        if      (y < 0)     { mod = mods[0]; }
-        else if (y == 0)    { mod = mods[1]; }
-        else                { mod = mods[2]; }
-        top =    (static_cast<float>(y) + mod[0])/(static_cast<float>(x) + mod[1]);
-        center =  static_cast<float>(y)          / static_cast<float>(x);
-        bottom = (static_cast<float>(y) + mod[2])/(static_cast<float>(x) + mod[3]);
-    }
-
-    void ShadowCast::Node::add(Node* node, bool full) {
-        if (node != this) {
-            if (full)   { m_full_children.push_back(node); }
-            else        { m_part_children.push_back(node); }
+    Shadowcast::Shadowcast(const Map<bool>& terrain_map) :
+        m_terrain_map(terrain_map),
+        m_visible_map(terrain_map.height(), terrain_map.width()),
+        m_visited_map(terrain_map.height(), terrain_map.width()) {
         }
-    }
 
-    void ShadowCast::calculate(int oy, int ox) {
 
-        // rays from origin to obstacle
-        Slope o_slope(oy, ox);
+   void Shadowcast::cast(int center_x, int center_y, int radius, int row, float start_slope, float stop_slope, const Mod& m) {
+        if (start_slope < stop_slope) {
+            return;
+        }
+        float next_start_slope = start_slope;
 
-        for (int tx = ox; tx <= m_size; ++tx) {
+        // iterate rows, center out 
+        for (int y = -row; y >= -radius; y--) {
+            bool blocked = false;
 
-            int y_start = std::ceil(o_slope.bottom*tx);
-            int y_stop  = std::floor(o_slope.top*tx);
+            // iterate rows left to right.
+            for (int x = y; x <= 0; x++) {
 
-            for (int ty = y_start; ty <= y_stop && ty <= m_size; ++ty) {
+                float l_slope = (x - 0.5) / (y + 0.5);
+                float r_slope = (x + 0.5) / (y - 0.5);
 
-                // rays from origin to cell to check if shaded
-                Slope t_slope(ty, tx);
+                // this would indicate that 
+                if (l_slope <= stop_slope) {
+                    break;
+                }
 
-                if (t_slope.center < o_slope.top && t_slope.center > o_slope.bottom) {
+                int abs_y = center_y + x*m.yx + y*m.yy;
+                int abs_x = center_x + x*m.xx + y*m.xy;
+                if (start_slope >= r_slope && m_terrain_map.inRange(abs_y, abs_x) && x*x + y*y < radius*radius) {
+                    m_visible_map[abs_y][abs_x] = true;
+                    m_visited_map[abs_y][abs_x] = true;
 
-                    bool full = t_slope.top < o_slope.top && t_slope.bottom >o_slope.bottom;
-
-                    // shared by all (type a, b and c)
-                    node( oy,  ox)->add(node( ty,  tx), full);
-                    node( oy, -ox)->add(node( ty, -tx), full);
-
-                    // shared by all not on diagonal axis (type a and c)
-                    if (oy != ox) {
-                        node( ox,  oy)->add(node( tx,  ty), full);
-                        node(-ox,  oy)->add(node(-tx,  ty), full);
-                    }
-
-                    // shared by all not on straight axis (type b and c)
-                    if (oy != 0) {
-                        node(-oy,  ox)->add(node(-ty,  tx), full);
-                        node(-oy, -ox)->add(node(-ty, -tx), full);
-                    }
-
-                    // shared by all not on any axis (type c)
-                    if (oy != ox && oy != 0) {
-                        node( ox, -oy)->add(node( tx, -ty), full);
-                        node(-ox, -oy)->add(node(-tx, -ty), full);
+                    if (blocked && m_terrain_map[abs_y][abs_x]) {
+                        next_start_slope = r_slope;
+                    } else if (blocked) {
+                        blocked = false;
+                        start_slope = next_start_slope;
+                    } else if (m_terrain_map[abs_y][abs_x]) {
+                        blocked = true;
+                        next_start_slope = r_slope;
+                        cast(center_x, center_y, radius, 1 - y, start_slope, l_slope, m);
                     }
                 }
             }
-        }
-    }
-
-    ShadowCast::Node* ShadowCast::node(int y, int x) const {
-        int row = m_size + y;
-        int col = m_size + x;
-        return &m_arr[row*(2*m_size + 1) + col];
-    }
-
-
-    ShadowCast::ShadowCast(int length)
-        : m_size(length),
-        m_arr(new Node[(2*m_size + 1)*(2*m_size + 1)]) {
-
-            // calculate shadows for all nodes in the first quardrant. (which will populate
-            // the whole matrix)
-            for (int x = 1; x <= m_size; ++x) {
-                for (int y = 0; y <= x; ++y) {
-                    calculate(y, x);
-                }
-            }
-
-        }
-
-    ShadowCast::~ShadowCast() {
-        delete [] m_arr;
-    }
-
-    void ShadowCast::set(int y, int x) {
-        Node * n = node(y, x);
-        if (!n->m_full) {
-            for (Node* c : n->m_full_children) {
-                c->m_full = true;
-                c->m_part = false;
-            }
-            for (Node* c : n->m_part_children) {
-                if (!c->m_full) {
-                    c->m_part = true;
-                }
+            if (blocked) {
+                break;
             }
         }
     }
 
-    bool ShadowCast::visible(int y, int x) const {
-        return !node(y, x)->m_full && !node(y, x)->m_part;
-    }
-
-    void ShadowCast::reset(int range) {
-        for (int y = -m_size; y <= m_size; ++y) {
-            for (int x = -m_size; x <= m_size; ++x) {
-                Node* n = node(y, x);
-                n->m_part = false;
-                if (y*y + x*x >= range*range) {
-                    n->m_full = true;
-                } else {
-                    n->m_full = false;
-                }
-            }
+    void Shadowcast::update(int center_y, int center_x, int radius) {
+        m_visible_map.clear();
+        for (auto i = 0; i < 8; ++i) {
+            cast(center_x, center_y, radius, 1, 1.0, 0.0, mods[i]);
         }
     }
 
-    int ShadowCast::size() const {
-        return m_size;
+    bool Shadowcast::visible(int y, int x) const {
+        return m_visible_map[y][x];
     }
 
-    void ShadowCast::print() const {
-        for (int y = -m_size; y <= m_size; ++y) {
-            for (int x = -m_size; x <= m_size; ++x) {
-                Node* n = node(y, x);
-                if (y == 0 && x == 0) {
-                    std::cout << "@";
-                } else if (n->m_full) {
-                    std::cout << "o";
-                } else if (n->m_part) {
-                    std::cout << "#";
-                } else {
-                    std::cout << ".";
-                }
-            }
-            std::cout << std::endl;
-        }
+    bool Shadowcast::visited(int y, int x) const {
+        return m_visited_map[y][x];
     }
-
 }

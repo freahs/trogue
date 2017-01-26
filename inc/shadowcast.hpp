@@ -1,47 +1,36 @@
 #ifndef TROGUE_SHADOWCAST_H
 #define TROGUE_SHADOWCAST_H
 
-#include <vector>
+#include "map.hpp"
+
 
 namespace trogue {
 
-    class ShadowCast {
-    private:
+    class Shadowcast {
 
-        struct Slope {
-            static const float mods[3][4];
-            float top;
-            float center;
-            float bottom;
-            Slope(int y, int x);
+        struct Mod {
+            const int xx;
+            const int xy;
+            const int yx;
+            const int yy;
         };
 
-        struct Node {
-            std::vector<Node*>  m_part_children;
-            std::vector<Node*>  m_full_children;
-            bool                m_full = false;
-            bool                m_part = false;
-            void add(Node*, bool);
-        };
+        const static Mod mods[8];
+    public:
 
-        int     m_size;
-        Node*   m_arr;
+        const Map<bool>&    m_terrain_map;
+        Map<bool>           m_visible_map;
+        Map<bool>           m_visited_map;
 
-        Node* node(int, int) const;
-        void calculate(int, int);
+        void cast(int x, int y, int radius, int row, float start_slope, float end_slope, const Mod& m);
 
     public:
-        ShadowCast(int);
-        ~ShadowCast();
+        Shadowcast(const Map<bool> &terrain_map);
+        void update(int y, int x, int radius);
 
-        void set(int, int);
-        bool visible(int, int) const;
-        void reset(int);
-        int size() const;
-
-        void print() const;
+        bool visible(int y, int x) const;
+        bool visited(int y, int x) const;
     };
-
 }
 
 #endif
