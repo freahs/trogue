@@ -16,9 +16,9 @@ namespace trogue {
             bool        m_needs_update;
         };
 
-        int                                     m_rows;
-        int                                     m_cols;
-        bool                                    m_was_resized;
+        int                 m_rows;
+        int                 m_cols;
+        bool                m_was_resized;
         std::vector<Data>   m_data;
         std::vector<bool>   m_need_update;
 
