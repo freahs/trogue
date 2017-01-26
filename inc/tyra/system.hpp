@@ -19,10 +19,10 @@
 
 #include "componentmanager.hpp"
 #include "typeid.hpp"
-#include "vectormap.hpp"
 
 #include <bitset>
 #include <unordered_set>
+
 
 
 namespace tyra {
