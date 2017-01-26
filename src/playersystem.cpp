@@ -20,7 +20,7 @@ namespace trogue {
         for (auto id : ids) {
             auto pos = world().component().get<PositionComponent>(id);
             auto sight = world().component().get<SightComponent>(id);
-            scene().update(pos.y, pos.x, sight.range);
+            scene().update(pos.y, pos.x, sight.range, world().delta());
         }
     }
 }
