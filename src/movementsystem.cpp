@@ -25,25 +25,22 @@ namespace trogue {
             auto tile = &world().component().get<TileComponent>(id);
             auto position = &world().component().get<PositionComponent>(id);
             auto movement = &world().component().get<MovementComponent>(id);
+
+            auto new_y = position->y + movement->vy;
+            auto new_x = position->x + movement->vx;
+
             scene().remove(position->y, position->x, tile->layer, id);
-            if (scene().inRange(position->y + movement->vy, position->x)) {
+            if (scene().inRange(new_y, position->x) && !scene().blocked(new_y, position->x)) {
                 position->y += movement->vy;
             }
 
-            if (scene().inRange(position->y, position->x + movement->vx)) {
+            if (scene().inRange(position->y, new_x) && !scene().blocked(position->y, new_x)) {
                 position->x += movement->vx;
             }
             scene().add(position->y, position->x, tile->layer, id);
             world().component().remove<MovementComponent>(id);
         }
 
-        /*
-        auto player_position = world().component().get<PositionComponent>(world().tag("PLAYER"));
-        int py = player_position.y;
-        int px = player_position.x;
-
-        scene().update(py, px, 20);
-        */
     }
 
 }
