@@ -28,9 +28,9 @@ namespace trogue {
 
     class Scene {
     private:
-        typedef std::chrono::high_resolution_clock      Time;
-        typedef std::chrono::milliseconds               Ms;
-        typedef std::chrono::system_clock::time_point   TimePoint;
+        //typedef std::chrono::high_resolution_clock      Time;
+        //typedef std::chrono::milliseconds               Ms;
+        //typedef std::chrono::system_clock::time_point   TimePoint;
 
         // EntityStack keeps track of the content of a tile which id divided into layers.
         // If there are multiple entities occupying the same tile, these are rotated with
@@ -51,23 +51,24 @@ namespace trogue {
         int                         m_num_layers;
         int                         m_center_y;
         int                         m_center_x;
-        int                         m_delta;
-        TimePoint                   m_last_update;
+        //int                         m_delta;
+        //TimePoint                   m_last_update;
+        int                         m_elapsed_time;
         std::vector<EntityStack>    m_stacks;
-        mutable std::vector<bool>   m_visited;
-        ShadowCast                  m_shadowcast;
-        Map                         m_map;
+        Map<bool>                   m_terrain_map;
+        Shadowcast                  m_shadowcast;
 
         const EntityStack& getStack(int row, int col, int layer) const;
         EntityStack& getStack(int row, int col, int layer);
 
     public:
-        Scene(Map map, int num_layers);
+        Scene(Map<bool> map, int num_layers);
 
         bool visible(int row, int col) const;
         bool visited(int row, int col) const;
+        bool blocked(int row, int col) const;
 
-        void update(int y, int x, int range);
+        void update(int y, int x, int range, int delta);
         void add(int row, int col, int layer, tyra::EntityId id);
         void remove(int row, int col, int layer, tyra::EntityId id);
         tyra::EntityId get(int row, int col, int layer) const;

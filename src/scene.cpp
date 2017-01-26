@@ -55,14 +55,14 @@ namespace trogue {
         }
     }
 
-    Scene::Scene(Map map, int num_layers)
+    Scene::Scene(Map<bool> map, int num_layers)
         : m_num_layers(num_layers),
         m_center_y(-1), m_center_x(-1),
-        m_delta(0), m_last_update(Time::now()),
+        //m_delta(0), m_last_update(Time::now()),
+        m_elapsed_time(0),
         m_stacks(map.height() * map.width() * m_num_layers),
-        m_visited(map.height() * map.width(), false),
-        m_shadowcast(s_max_visibility_range),
-        m_map(map) {
+        m_terrain_map(map),
+        m_shadowcast(m_terrain_map) {
         }
 
     Scene::EntityStack& Scene::getStack(int y, int x, int layer) {
@@ -74,55 +74,32 @@ namespace trogue {
     }
 
     bool Scene::visible(int y, int x) const {
-        if (inRange(y, x)) {
-            int rel_y = y - m_center_y;
-            int rel_x = x - m_center_x;
-            if(abs(rel_y) < m_shadowcast.size() && abs(rel_x) < m_shadowcast.size()){
-                if (m_shadowcast.visible(rel_y, rel_x)) {
-                    m_visited[y*width() + x] = true;
-                    return true;
-                }
-            }
-        }
-        return false;
+        return m_shadowcast.visible(y, x);
     }
 
     bool Scene::visited(int y, int x) const {
-       if (inRange(y, x)) {
-            return m_visited[y*width() + x];
-        }
-        return false;
+        return m_shadowcast.visited(y, x);
     }
 
-    void Scene::update(int center_y, int center_x, int range) {
-        m_delta += std::chrono::duration_cast<Ms>(Time::now() - m_last_update).count();
+    bool Scene::blocked(int y, int x) const {
+        return m_terrain_map[y][x];
+    }
 
+    void Scene::update(int center_y, int center_x, int range, int delta) {
         if (m_center_y != center_y || m_center_x != center_x) {
             m_center_y = center_y;
             m_center_x = center_x;
-            m_shadowcast.reset(range);
-            for (int rel_y = -range; rel_y <= range; ++rel_y) {
-                for (int rel_x = -range; rel_x <= range; ++rel_x) {
-                    int y = m_center_y + rel_y;
-                    int x = m_center_x + rel_x;
-                    if (!inRange(y, x) || !m_map.visible(y, x)) {
-                        m_shadowcast.set(rel_y, rel_x);
-                    }
-                }
-            }
-
+            m_shadowcast.update(center_y, center_x, range);
         }
 
-        /*
-           if (m_delta > s_tile_rotation_time) {
-           m_delta = m_delta - s_tile_rotation_time;
+        m_elapsed_time += delta;
 
-           for (EntityStack& stack : m_stacks) {
-           stack.update();
-           }
-           }
-           */
-
+        if (m_elapsed_time > s_tile_rotation_time) {
+            m_elapsed_time = 0;
+            for (auto &s : m_stacks) {
+                s.update();
+            }
+        }
     }
 
     void Scene::add(int y, int x, int layer, tyra::EntityId id) {
@@ -140,11 +117,11 @@ namespace trogue {
     }
 
     int Scene::width() const {
-        return m_map.width();
+        return m_terrain_map.width();
     }
 
     int Scene::height() const {
-        return m_map.height();
+        return m_terrain_map.height();
     }
 
     int Scene::layers() const {
@@ -160,7 +137,7 @@ namespace trogue {
     }
 
     bool Scene::inRange(int y, int x) const {
-        return m_map.inRange(y, x);
+        return m_terrain_map.inRange(y, x);
     }
 
     void Scene::print() const {
@@ -169,13 +146,13 @@ namespace trogue {
                 if (y == m_center_y && x == m_center_x) {
                     std::cout << format::fg(4) << "@";
                 } else if(visible(y,x)) {
-                    if (m_map.walkable(y, x)) {
+                    if (!m_terrain_map[y][x]) {
                         std::cout << format::fg(255) << ".";
                     } else {
                         std::cout << format::fg(255) << "X";
                     }
                 } else if (visited(y, x)) {
-                    if (m_map.walkable(y, x)) {
+                    if (!m_terrain_map[y][x]) {
                         std::cout << format::fg(243) << ".";
                     } else {
                         std::cout << format::fg(243) << "X";
