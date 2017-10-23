@@ -9,6 +9,22 @@ namespace trogue {
 
     struct PlayerComponent : public tyra::Component { };
 
+    struct AIComponent : public tyra::Component {
+        int speed;
+        int elapsed;
+        AIComponent(int speed) : speed(speed), elapsed(0) { }
+
+        bool update(int delta) {
+            elapsed += delta;
+            if (elapsed >= speed) {
+                elapsed = (elapsed % speed);
+                return true;
+            }
+            return false;
+        }
+    };
+
+
     struct AttributeComponent : public tyra::Component {
         bool translucent = true;
         bool solid = false;
