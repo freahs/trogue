@@ -9,7 +9,7 @@ LIB_DIR=lib
 RELEASE_FLAGS=-DNDEBUG
 DEBUG_FLAGS=#-Q
 
-_OBJ = xterm_display.o shadowcast.o scene.o movementsystem.o tilesystem.o playersystem.o
+_OBJ = xterm_display.o shadowcast.o scene.o movementsystem.o tilesystem.o playersystem.o aisystem.o
 OBJ = $(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 #fdiagnostics requirec gcc 4.9+
