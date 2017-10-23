@@ -17,7 +17,7 @@
 #ifndef TYRA_WORLD_H
 #define TYRA_WORLD_H
 
-#include "entitymanager.hpp"
+#include "config.hpp"
 
 #include <chrono>
 #include <map>

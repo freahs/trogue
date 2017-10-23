@@ -17,6 +17,7 @@
 #ifndef TYRA_ENTITYMANAGER_H
 #define TYRA_ENTITYMANAGER_H
 
+#include "config.hpp"
 #include "manager.hpp"
 
 #include <cstdint>
@@ -26,11 +27,6 @@
 
 namespace tyra {
 
-    const std::size_t MAX_ENTITIES = UINT16_MAX;
-
-    typedef std::uint16_t   EntityVersion;  // entity_id >> 16
-    typedef std::uint16_t   EntityIndex;    // entity_id & 0xFFFF
-    typedef std::uint32_t   EntityId;       // (entity_version << 16) | entity_index
 
     class EntityManager : public Manager {
 
@@ -41,7 +37,7 @@ namespace tyra {
     public:
         EntityIndex static index(EntityId id )                 { return id & 0xFFFF; }
         EntityVersion static version(EntityId id)              { return id >> 16; }
-        EntityId static id(EntityVersion ver, EntityIndex idx) { return (ver << 16) | idx; }
+        EntityId static id(EntityVersion ver, EntityIndex idx) { return static_cast<EntityId>((ver << 16) | idx); }
 
         bool valid(EntityId) const;
 

@@ -17,56 +17,64 @@
 #ifndef TYRA_COMPONENTMANAGER_H
 #define TYRA_COMPONENTMANAGER_H
 
-#include "entitymanager.hpp"
+#include "componentset.hpp"
+#include "config.hpp"
 #include "manager.hpp"
 #include "typeid.hpp"
 
 #include <array>
-#include <bitset>
-#include <cstdint>
 #include <unordered_set>
 #include <vector>
-
 
 #include <iostream>
 
 namespace tyra {
 
-    const std::size_t MAX_COMPONENT_TYPES = UINT8_MAX;
 
     struct Component {
-            virtual ~Component() { }
+        virtual ~Component() { }
     };
 
     class ComponentManager : public Manager {
-        private:
-            typedef std::array<Component*, MAX_COMPONENT_TYPES>	ComponentArray;
-            typedef std::bitset<MAX_COMPONENT_TYPES>            ComponentBitSet;
+    private:
+        typedef std::array<Component*, MAX_COMPONENT_TYPES>	ComponentArray;
 
-            std::unordered_set<EntityId>    m_updated;
+        std::unordered_set<EntityId>    m_updated;
 
-            std::vector<ComponentArray>     m_components;
-            std::vector<ComponentBitSet>    m_components_bits;
-            size_t                          m_num_registered_components;
+        std::vector<ComponentArray>     m_components;
+        std::vector<ComponentSet>       m_component_sets;
+        size_t                          m_num_registered_components;
 
-            void add(EntityId, TypeId, Component*);
-            void remove(EntityId, TypeId);
-            void removeAll(EntityId);
-            bool valid(EntityId, TypeId) const;
-            Component* get(EntityId, TypeId) const;
+        void add(EntityId, TypeId, Component*);
+        void remove(EntityId, TypeId);
+        bool valid(EntityId, TypeId) const;
+        Component* get(EntityId, TypeId) const;
 
-        public:
-            ~ComponentManager();
+    public:
+        ~ComponentManager();
 
-            template <typename T> bool valid(EntityId) const;
-            template <typename T> T& get(EntityId) const;
-            template <typename T, typename... Args> void add(EntityId, Args&&...);
-            template <typename T> void remove(EntityId);
+        template <typename T, typename... Args> void add(EntityId, Args&&...);
+        template <typename T> void remove(EntityId);
+        template <typename T> bool valid(EntityId) const;
+        template <typename T> T& get(EntityId) const;
 
-            std::bitset<MAX_COMPONENT_TYPES>& bits(EntityId); 
-            std::unordered_set<EntityId>& updated() { return m_updated; }
-            size_t size() const { return m_num_registered_components; }
+        const ComponentSet::container_type& bits(EntityId) const;
+        std::unordered_set<EntityId>& updated() { return m_updated; }
+        size_t size() const { return m_num_registered_components; }
     };
+
+    template <typename T, typename... Args>	void ComponentManager::add(EntityId entity_id, Args&&... args)	{
+        static_assert(std::is_base_of<Component, T>::value, "ComponentManager::add: T must be derived from Component");
+        TypeId type_id = Type<Component>::id<T>();
+        add(entity_id, type_id,  new T{std::forward<Args>(args)...});
+
+    }
+
+    template <typename T> void ComponentManager::remove(EntityId entity_id) {
+        static_assert(std::is_base_of<Component, T>::value, "ComponentManager::remove: T must be derived from Component");
+        TypeId type_id = Type<Component>::id<T>();
+        remove(entity_id, type_id);
+    }
 
     template <typename T> bool ComponentManager::valid(EntityId entity_id) const {
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::valid: T must be derived from Component");
@@ -77,22 +85,9 @@ namespace tyra {
     template <typename T> T& ComponentManager::get(EntityId entity_id) const {
         static_assert(std::is_base_of<Component, T>::value, "ComponentManager::get: T must be derived from Component");
         TypeId type_id = Type<Component>::id<T>();
-        Component* component_ptr = get(entity_id, type_id);
-        return static_cast<T&>(*component_ptr);
+        return static_cast <T&>(*get(entity_id, type_id));
     }
 
-    template <typename T, typename... Args>	void ComponentManager::add(EntityId entity_id, Args&&... args)	{
-        static_assert(std::is_base_of<Component, T>::value, "ComponentManager::add: T must be derived from Component");
-        T* component_ptr = new T{std::forward<Args>(args)...};
-        TypeId type_id = Type<Component>::id<T>();
-        add(entity_id, type_id, component_ptr);
-    }
-
-    template <typename T> void ComponentManager::remove(EntityId entity_id) {
-        static_assert(std::is_base_of<Component, T>::value, "ComponentManager::remove: T must be derived from Component");
-        TypeId type_id = Type<Component>::id<T>();
-        remove(entity_id, type_id); 
-    }
 
 }
 

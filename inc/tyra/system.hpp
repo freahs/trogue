@@ -18,6 +18,7 @@
 #define TYRA_SYSTEM_H
 
 #include "componentmanager.hpp"
+#include "componentview.hpp"
 #include "typeid.hpp"
 
 #include <bitset>
@@ -30,33 +31,24 @@ namespace tyra {
     struct Component;
     class World;
 
-    class System {
+    class System : protected ComponentView {
     public:
         typedef std::unordered_set<EntityId> Container;
 
     private:
-        std::bitset<MAX_COMPONENT_TYPES>    m_require_one_components;
-        std::bitset<MAX_COMPONENT_TYPES>    m_require_all_components;
-        std::bitset<MAX_COMPONENT_TYPES>    m_exclude_components;
         Container                           m_entities;
         World*                              m_world;
-
-        void requireOne(TypeId);
-        void requireAll(TypeId);
-        void exclude(TypeId);
 
         void addEntity(EntityId);
         void removeEntity(EntityId);
 
     protected:
         World& world() const { return *m_world; }
-        template<typename T> void requireOne();
-        template<typename T> void requireAll();
-        template<typename T> void exclude();
 
         virtual void process(const Container&) { }
 
         virtual void entityAdded(EntityId) { }
+        virtual void entityUpdated(EntityId) { }
         virtual void entityRemoved(EntityId) { }
 
     public:
@@ -67,23 +59,8 @@ namespace tyra {
         void update();
         size_t size() const { return m_entities.size(); }
 
-        void entityUpdated(EntityId, std::bitset<MAX_COMPONENT_TYPES>&);
+        void entityUpdated(EntityId, const ComponentSet&);
     };
-
-    template<typename T> void System::requireOne() {
-        TypeId id = Type<Component>::id<T>();
-        requireOne(id);
-    }
-
-    template<typename T> void System::requireAll() {
-        TypeId id = Type<Component>::id<T>();
-        requireAll(id);
-    }
-
-    template<typename T> void System::exclude() {
-        TypeId id = Type<Component>::id<T>();
-        exclude(id);
-    }
 
 }
 

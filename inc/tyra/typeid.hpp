@@ -45,19 +45,19 @@
 
 namespace tyra {
 
-	typedef std::uint8_t TypeId;
+    typedef std::uint8_t TypeId;
 
-	template <typename B> class Type {
-		static TypeId m_next_type_id;
-	public:
-		template <typename T> static const TypeId id() {
-			static_assert(std::is_base_of<B, T>::value, "TypeId: T must be base of B");
-			static const TypeId id = m_next_type_id++;
-			return id;
-		}
-	};
+    template <typename B> class Type {
+        static TypeId m_next_type_id;
+    public:
+        template <typename T> static TypeId id() {
+            static_assert(std::is_base_of<B, T>::value, "TypeId: T must be base of B");
+            static const TypeId id = m_next_type_id++;
+            return id;
+        }
+    };
 
-	template <typename B> TypeId Type<B>::m_next_type_id = 0;
+    template <typename B> TypeId Type<B>::m_next_type_id = 0;
 }
 
 #endif

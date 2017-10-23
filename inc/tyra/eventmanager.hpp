@@ -17,17 +17,15 @@
 #ifndef TYRA_EVENTMANAGER_H
 #define TYRA_EVENTMANAGER_H
 
-#include "entitymanager.hpp"
+#include "config.hpp"
 #include "manager.hpp"
 #include "typeid.hpp"
 
-#include <cstdint>
 #include <map>
 #include <unordered_set>
 
 namespace tyra {
 
-    const std::size_t MAX_EVENT_TYPES = UINT8_MAX;
 
     class Event {
     public:
