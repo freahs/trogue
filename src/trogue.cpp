@@ -13,6 +13,7 @@
 #include "tilesystem.hpp"
 #include "movementsystem.hpp"
 #include "playersystem.hpp"
+#include "aisystem.hpp"
 #include "components.hpp"
 
 typedef std::chrono::high_resolution_clock      Time;
@@ -28,6 +29,7 @@ int main() {
     trogue::Scene scene(map, 5);
 
     tyra::World world;
+    world.system().add<trogue::AISystem>();
     world.system().add<trogue::MovementSystem>(scene);
     world.system().add<trogue::PlayerSystem>(scene);
     world.system().add<trogue::TileSystem>(scene, *trogue::Display::instance(), map.height(), map.width());
@@ -56,6 +58,14 @@ int main() {
     world.component().add<trogue::SightComponent>(pid, 20);
     world.component().add<trogue::PlayerComponent>(pid);
     world.tag("PLAYER", pid);
+
+    for (int i = 0; i < 3; ++i) {
+        auto eid = world.entity().create();
+        world.component().add<trogue::PositionComponent>(eid, rand() % map.height(), rand() % map.width());
+        world.component().add<trogue::TileComponent>(eid, "E", 5, 6, -1, -1, 1);
+        world.component().add<trogue::SightComponent>(eid, 20);
+        world.component().add<trogue::AIComponent>(eid, (rand() % 100) + 100);
+    }
 
     trogue::Input input;
     trogue::Key res = trogue::Key::NONE;
