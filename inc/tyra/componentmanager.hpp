@@ -25,10 +25,20 @@
 #include <array>
 #include <unordered_set>
 #include <vector>
+#include <stdexcept>
 
 #include <iostream>
 
 namespace tyra {
+
+    namespace error {
+        struct ComponentError : public std::runtime_error {
+            EntityId    entity_id;
+            TypeId      component_id;
+            ComponentError(const std::string& msg, EntityId eid, TypeId tid)
+            : runtime_error(msg), entity_id(eid), component_id(tid) {}
+        };
+    }
 
 
     struct Component {
