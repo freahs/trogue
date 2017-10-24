@@ -7,17 +7,14 @@
 
 namespace trogue {
 
-    VisibilitySystem::VisibilitySystem(Scene& scene) : m_scene(&scene) {
-        requireAll<PositionComponent>();
-    }
-
-    Scene& VisibilitySystem::scene() {
-        return *m_scene;
+    VisibilitySystem::VisibilitySystem(int height, int width) : m_height(height), m_width(width) {
+        requireAll<PositionComponent, AttributeComponent, TileComponent>();
+        exclude<PlayerComponent>();
     }
 
 
     void VisibilitySystem::process(const tyra::System::Container& ids) {
-        auto m = Map<bool>(scene().height(), scene().width());
+        auto m = Map<bool>(m_height, m_width);
         for (auto id : ids) {
             auto pos = world().component().get<PositionComponent>(id);
             auto attr = world().component().get<AttributeComponent>(id);
@@ -34,6 +31,7 @@ namespace trogue {
 
         for (auto id : ids) {
             auto pos = world().component().get<PositionComponent>(id);
+            auto tc = world().component().get<TileComponent>(id);
 
             RenderComponent* rc = nullptr;
             if (world().component().valid<RenderComponent>(id)) {
@@ -46,15 +44,16 @@ namespace trogue {
             }
 
             // If the entitys position is visible, add a visibility component
-            // and add a render component or update and existing one.
+            // and add a render component or update an existing one.
             if(sc.visible(pos.y, pos.x)) {
                 if (vc == nullptr) {
                     world().component().add<VisibleComponent>(id);
                 }
                 if (rc == nullptr) {
-                    world().component().add<RenderComponent>(id, pos.y, pos.x);
+                    world().component().add<RenderComponent>(id, pos.y, pos.x, tc.symbol, tc.color, tc.bg_color, tc.layer);
                 } else {
-                    rc->update(pos.y, pos.x);
+                    rc->update_pos(pos.y, pos.x);
+                    rc->update_tile(tc.color, tc.bg_color);
                 }
 
             // If it's not visible, remove its visibility component. It should keep
@@ -63,6 +62,9 @@ namespace trogue {
             } else {
                 if (vc != nullptr) {
                     world().component().remove<VisibleComponent>(id);
+                    if (rc != nullptr) {
+                        rc->update_tile(tc.blocked_color, tc.blocked_bg_color);
+                    }
                 }
                 if (rc != nullptr && sc.visible(rc->y, rc->x)) {
                     world().component().remove<RenderComponent>(id);

@@ -6,21 +6,16 @@
 
 namespace trogue {
 
-    PlayerSystem::PlayerSystem(Scene& scene) : m_scene(&scene) {
-        requireAll<PlayerComponent>();
-        requireAll<PositionComponent>();
-        requireAll<SightComponent>();
-    }
-
-    Scene& PlayerSystem::scene() {
-        return *m_scene;
+    PlayerSystem::PlayerSystem() {
+        requireAll<PlayerComponent, PositionComponent, SightComponent, RenderComponent>();
     }
 
     void PlayerSystem::process(const tyra::System::Container& ids) {
         for (auto id : ids) {
-            auto pos = world().component().get<PositionComponent>(id);
-            auto sight = world().component().get<SightComponent>(id);
-            scene().update(pos.y, pos.x, sight.range, world().delta());
+            auto pc = world().component().get<PositionComponent>(id);
+            world().component().get<RenderComponent>(id).update_pos(pc.y, pc.x);
         }
+   
+
     }
 }

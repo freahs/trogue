@@ -11,12 +11,11 @@
 namespace trogue {
 
     class VisibilitySystem : public tyra::System {
-    private:
-        Scene*  m_scene;
-        Scene& scene();
+        int m_height;
+        int m_width;
 
     public:
-        VisibilitySystem(Scene& scene);
+        VisibilitySystem(int height, int width);
         void process(const tyra::System::Container&) override;
     };
 }

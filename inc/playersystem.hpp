@@ -13,7 +13,7 @@ namespace trogue {
         Scene& scene();
 
     public:
-        PlayerSystem(Scene& scene);
+        PlayerSystem();
         void process(const tyra::System::Container&) override;
     };
 }

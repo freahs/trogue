@@ -11,12 +11,11 @@ namespace trogue {
 
      class MovementSystem : public tyra::System {
      private:
-         Scene* m_scene;
-         Scene& scene();
+         int m_height, m_width;
 
      public:
          void process(const tyra::System::Container& ids) override;
-         MovementSystem(Scene& scene);
+         MovementSystem(int height, int width);
      };
 
 }
