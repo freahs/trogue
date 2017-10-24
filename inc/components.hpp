@@ -51,8 +51,16 @@ namespace trogue {
 
     struct RenderComponent : public tyra::Component {
         int y, x;
-        RenderComponent(int y, int x) : y(y), x(x) { }
-        void update(int new_y, int new_x) { y = new_y; x = new_x; }
+        std::string symbol;
+        int color;
+        int bg_color;
+        int layer;
+        RenderComponent(int y, int x, std::string symbol, int color, int bg_color, int layer)
+        : y(y), x(x), symbol(symbol), color(color), bg_color(bg_color), layer(layer) { }
+        void update_pos(int new_y, int new_x) { y = new_y; x = new_x; }
+        void update_tile(int new_color, int new_bg_color) {
+            color = new_color; bg_color = new_bg_color;
+        }
     };
 
     struct TileComponent : public tyra::Component {
