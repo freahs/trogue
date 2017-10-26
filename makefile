@@ -39,7 +39,7 @@ clean:
 	rm -f $(OBJ_DIR)/*.o
 	rm -f $(BIN_DIR)/*
 	cp ../libtyra/lib/libtyra.a ./lib/
-	cp ../libtyra/inc/* ./inc/tyra/
+	cp -r ../libtyra/inc/* ./inc/tyra/
 	cp ../ansi_format/inc/ansi_format.hpp ./inc/
 
 lib:
