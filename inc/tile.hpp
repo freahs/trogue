@@ -3,19 +3,28 @@
 
 #include <string>
 #include <ostream>
+#include <memory>
+#include <vector>
 
 namespace trogue {
 
-    struct Tile {
-        std::string symbol   = " ";
-        int         color    = -1;
-        int         bg_color = -1;
-        int         layer    = -1;
+    class Tile {
+    private:
+        static std::vector<Tile> s_tiles;
 
-        Tile() = default;
+        Tile(const std::string symbol, int color, int bg_color);
+        Tile();
 
-        Tile(const std::string symbol, int color, int bg_color, int layer)
-        : symbol(symbol), color(color), bg_color(bg_color), layer(layer) { }
+    public:
+        std::string symbol;
+        int         color;
+        int         bg_color;
+
+        static int create(const std::string symbol, int color, int bg_color);
+        static const Tile& blank();
+        static const Tile& get(int id);
+
+        /*
 
         bool complete() const {
             if (color == -1) { return false; }
@@ -31,15 +40,11 @@ namespace trogue {
         bool operator==(const Tile& other) {
             if (this->color != other.color) { return false; }
             if (this->bg_color != other.bg_color) { return false; }
-            if (this->layer != other.layer) { return false; }
             if (this->symbol != other.symbol) { return false; }
             return true;
         }
 
         bool operator<(const Tile& other) {
-            if (this->layer != other.layer) {
-                return this->layer > other.layer;
-            }
             if (this->color != other.color) {
                 return this->color < other.color;
             }
@@ -48,8 +53,10 @@ namespace trogue {
             }
             return this->symbol < other.symbol;
         }
+        */
 
     };
+
 }
 
 #endif

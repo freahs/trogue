@@ -24,8 +24,6 @@
 #include <bitset>
 #include <unordered_set>
 
-
-
 namespace tyra {
 
     struct Component;
@@ -43,7 +41,10 @@ namespace tyra {
         void removeEntity(EntityId);
 
     protected:
-        World& world() const { return *m_world; }
+        World& world() {
+            return *m_world;
+        }
+
 
         virtual void process(const Container&) { }
 
@@ -55,6 +56,7 @@ namespace tyra {
 
         virtual ~System() { }
 
+        virtual void init() { }
         void world(World& world) { m_world = &world; }
         void update();
         size_t size() const { return m_entities.size(); }

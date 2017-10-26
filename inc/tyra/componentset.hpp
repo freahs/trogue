@@ -22,6 +22,7 @@
 
 #include <bitset>
 #include <cstdint>
+#include <iostream>
 
 namespace tyra {
 
@@ -54,7 +55,13 @@ namespace tyra {
 
         bool operator==(const ComponentSet& other) const;
         bool operator!=(const ComponentSet& other) const;
+        friend std::ostream& operator<<(std::ostream& os, const ComponentSet& cs) {
+            os << cs.m_bits;
+            return os;
+        }
     };
+
+
 
 }
 

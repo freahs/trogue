@@ -31,27 +31,21 @@ namespace trogue {
             int scene_y =  scene().centerY() + rel_y;
             for (int rel_x = -disp_half_width; rel_x <= disp_half_width; ++rel_x) {
                 int scene_x = scene().centerX() + rel_x;
-                std::string symbol = " ";
-                int color = -1;
-                int bg_color = -1;
+                auto tile = &Tile::blank();
                 if (scene().inRange(scene_y, scene_x)) {
                     for (int l = 0; l < scene().layers(); ++l) { 
                         tyra::EntityId id = scene().get(scene_y, scene_x, l);
                         if (id != tyra::EntityId(-1)) {
-                            auto tile = world().component().get<TileComponent>(id);
+                            auto tc = world().component().get<TileComponent>(id);
                             if (scene().visible(scene_y, scene_x)) {
-                                symbol = tile.symbol;
-                                color = tile.color;
-                                bg_color = tile.bg_color;
+                                tile = &tc.normal();
                             } else if (scene().visited(scene_y, scene_x)) {
-                                symbol = tile.symbol;
-                                color = tile.blocked_color;
-                                bg_color = tile.blocked_bg_color;
+                                tile = &tc.blocked();
                             }
                         }
                     }
                 }
-                display().set(disp_half_height + rel_y, disp_half_width + rel_x, symbol, color, bg_color);
+                display().set(disp_half_height + rel_y, disp_half_width + rel_x, tile->symbol, tile->color, tile->bg_color);
             }
         }
         display().draw(std::cout);

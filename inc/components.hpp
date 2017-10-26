@@ -3,6 +3,8 @@
 
 #include "tyra/componentmanager.hpp"
 
+#include "tile.hpp"
+
 #include <string>
 
 namespace trogue {
@@ -55,22 +57,15 @@ namespace trogue {
         void update(int new_y, int new_x) { y = new_y; x = new_x; }
     };
 
-    struct TileComponent : public tyra::Component {
-        std::string     symbol;
-        int             color;
-        int             blocked_color;
-        int             bg_color;
-        int             blocked_bg_color;
-        int             layer;
-
-        TileComponent(std::string symbol,
-                      int color, int blocked_color,
-                      int bg_color, int blocked_bg_color, int layer)
-            : symbol(symbol),
-            color(color), blocked_color(blocked_color),
-            bg_color(bg_color), blocked_bg_color(blocked_bg_color),
-            layer(layer) {
-            } 
+    class TileComponent : public tyra::Component {
+    private:
+        int id_a;
+        int id_b;
+    public:
+        int layer;
+        TileComponent(int id, int blocked_id, int layer) : id_a(id), id_b(blocked_id), layer(layer) { }
+        const Tile& normal() const { return Tile::get(id_a); }
+        const Tile& blocked() const { return Tile::get(id_b); }
     };
 
 }
