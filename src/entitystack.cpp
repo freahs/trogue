@@ -27,12 +27,18 @@ namespace trogue {
             ++m_current;
             if (m_current == m_items.end()) {
                 m_current = m_items.begin();
+            } else if (m_current->second < m_items.begin()->second) {
+                m_current = m_items.begin();
             }
         }
     }
 
     bool EntityStack::add(const data_type& v) {
-        auto res = m_items.insert({v, -1});
+        return add(v, -1);
+    }
+
+    bool EntityStack::add(const data_type& v, const meta_type& m) {
+        auto res = m_items.insert({v, m});
         m_current = res.first;
         return res.second;
     }

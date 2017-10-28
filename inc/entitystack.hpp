@@ -9,17 +9,26 @@ namespace trogue {
 
     class EntityStack {
     private:
-        using pair_type = typename std::pair<tyra::EntityId, int>;
-        using container = typename std::set<pair_type>;
-        using data_type = typename container::value_type::first_type;
-        using meta_type = typename container::value_type::second_type;
+        using data_type = tyra::EntityId;
+        using meta_type = int;
+        using pair_type = typename std::pair<data_type, meta_type>;
+        struct cmp {
+            bool operator()(const pair_type& p1, const pair_type& p2) const {
+                if (p1.second == p2.second) {
+                    return p1.first < p2.first;
+                }
+                return p1.second > p2.second;
+            }
+        };
+        using container = typename std::set<pair_type, cmp>;
         template<typename parent_iterator> class base_iterator;
         container m_items;
         container::const_iterator m_current;
 
     public:
-        class iterator;
+        //class iterator;
         class const_iterator;
+        using iterator = const_iterator;
 
         iterator begin();
         iterator end();
@@ -29,9 +38,11 @@ namespace trogue {
         EntityStack();
         void update();
         bool add(const data_type&);
+        bool add(const data_type&, const meta_type&);
         bool remove(const data_type&);
         data_type get() const;
     };
+
 
     template<typename parent_iterator>
     class EntityStack::base_iterator : std::iterator<std::random_access_iterator_tag, data_type> {
@@ -65,17 +76,19 @@ namespace trogue {
         inline bool operator<=(const base_iterator& rhs) const { return _ptr <= rhs._ptr; }
     };
 
-    class EntityStack::iterator : public base_iterator<typename container::iterator> {
-    public:
-        using iterator_category = std::random_access_iterator_tag;
-        using difference_type = typename base_iterator<typename container::iterator>::difference_type;
-        using reference = data_type&;
-        using pointer = data_type*;
-        using base_iterator<typename container::iterator>::base_iterator;
-        //inline reference operator[](difference_type rhs) const { return this->_ptr[rhs].first; }
-        //inline reference operator*()  { return this->_ptr->first; }
-        //inline pointer operator->() { return &(this->_ptr->first); }
-    };
+    /*
+       class EntityStack::iterator : public base_iterator<typename container::iterator> {
+       public:
+       using iterator_category = std::random_access_iterator_tag;
+       using difference_type = typename base_iterator<typename container::iterator>::difference_type;
+       using reference = data_type&;
+       using pointer = data_type*;
+       using base_iterator<typename container::iterator>::base_iterator;
+       inline reference operator[](difference_type rhs) const { return this->_ptr[rhs].first; }
+       inline reference operator*()  { return this->_ptr->first; }
+       inline pointer operator->() { return &(this->_ptr->first); }
+       };
+       */
 
     class EntityStack::const_iterator : public base_iterator<typename container::const_iterator> {
     public:
