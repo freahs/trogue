@@ -37,7 +37,6 @@ namespace trogue {
 
         EntityStack();
         void update();
-        bool add(const data_type&);
         bool add(const data_type&, const meta_type&);
         bool remove(const data_type&);
         data_type get() const;

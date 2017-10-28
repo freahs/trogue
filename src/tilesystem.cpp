@@ -8,11 +8,11 @@
 namespace trogue {
 
     TileSystem::TileSystem(Scene& scene, Display& display, int height, int width)
-        : m_scene(&scene), m_display(&display), 
-        m_height(height), m_width(width) {
-            requireAll<PositionComponent>();
-            requireAll<TileComponent>();
-        }
+    : m_scene(&scene), m_display(&display), 
+    m_height(height), m_width(width) {
+        requireAll<PositionComponent>();
+        requireAll<TileComponent>();
+    }
 
     Scene& TileSystem::scene() {
         return *m_scene;
@@ -33,15 +33,13 @@ namespace trogue {
                 int scene_x = scene().centerX() + rel_x;
                 auto tile = &Tile::blank();
                 if (scene().inRange(scene_y, scene_x)) {
-                    for (int l = 0; l < scene().layers(); ++l) { 
-                        tyra::EntityId id = scene().get(scene_y, scene_x, l);
-                        if (id != tyra::EntityId(-1)) {
-                            auto tc = world().component().get<TileComponent>(id);
-                            if (scene().visible(scene_y, scene_x)) {
-                                tile = &tc.normal();
-                            } else if (scene().visited(scene_y, scene_x)) {
-                                tile = &tc.blocked();
-                            }
+                    tyra::EntityId id = scene().get(scene_y, scene_x);
+                    if (id != tyra::EntityId(-1)) {
+                        auto tc = world().component().get<TileComponent>(id);
+                        if (scene().visible(scene_y, scene_x)) {
+                            tile = &tc.normal();
+                        } else if (scene().visited(scene_y, scene_x)) {
+                            tile = &tc.blocked();
                         }
                     }
                 }
@@ -60,7 +58,7 @@ namespace trogue {
     void TileSystem::entityRemoved(tyra::EntityId id) {
         auto position = world().component().get<PositionComponent>(id);
         auto tile = world().component().get<TileComponent>(id);
-        scene().remove(position.y, position.x, tile.layer, id);
+        scene().remove(position.y, position.x, id);
     }
 
 }

@@ -33,10 +33,6 @@ namespace trogue {
         }
     }
 
-    bool EntityStack::add(const data_type& v) {
-        return add(v, -1);
-    }
-
     bool EntityStack::add(const data_type& v, const meta_type& m) {
         auto res = m_items.insert({v, m});
         m_current = res.first;

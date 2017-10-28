@@ -29,40 +29,13 @@ namespace trogue {
 
     class Scene {
     private:
-        //typedef std::chrono::high_resolution_clock      Time;
-        //typedef std::chrono::milliseconds               Ms;
-        //typedef std::chrono::system_clock::time_point   TimePoint;
-
-        // EntityStack keeps track of the content of a tile which id divided into layers.
-        // If there are multiple entities occupying the same tile, these are rotated with
-        // fixed intervals, which is handeled by the Scene.
-        /*
-        class EntityStack {
-        private:
-            std::set<tyra::EntityId>                    m_entities;
-            std::set<tyra::EntityId>::const_iterator    m_current;
-
-        public:
-            EntityStack();
-            void update();
-            bool add(tyra::EntityId);
-            bool remove(tyra::EntityId);
-            tyra::EntityId get() const;
-        };
-        */
-
-        int                         m_num_layers;
-        int                         m_center_y;
-        int                         m_center_x;
-        //int                         m_delta;
-        //TimePoint                   m_last_update;
-        int                         m_elapsed_time;
-        std::vector<EntityStack>    m_stacks;
-        Map<bool>                   m_terrain_map;
-        Shadowcast                  m_shadowcast;
-
-        const EntityStack& getStack(int row, int col, int layer) const;
-        EntityStack& getStack(int row, int col, int layer);
+        int                 m_num_layers;
+        int                 m_center_y;
+        int                 m_center_x;
+        int                 m_elapsed_time;
+        Map<EntityStack>    m_stacks;
+        Map<bool>           m_terrain_map;
+        Shadowcast          m_shadowcast;
 
     public:
         Scene(Map<bool> map, int num_layers);
@@ -73,8 +46,8 @@ namespace trogue {
 
         void update(int y, int x, int range, int delta);
         void add(int row, int col, int layer, tyra::EntityId id);
-        void remove(int row, int col, int layer, tyra::EntityId id);
-        tyra::EntityId get(int row, int col, int layer) const;
+        void remove(int row, int col, tyra::EntityId id);
+        tyra::EntityId get(int row, int col) const;
 
         int width() const;
         int height() const;

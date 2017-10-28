@@ -29,7 +29,7 @@ namespace trogue {
             auto new_y = position->y + movement->vy;
             auto new_x = position->x + movement->vx;
 
-            scene().remove(position->y, position->x, tile->layer, id);
+            scene().remove(position->y, position->x, id);
             if (scene().inRange(new_y, position->x) && !scene().blocked(new_y, position->x)) {
                 position->y += movement->vy;
             }

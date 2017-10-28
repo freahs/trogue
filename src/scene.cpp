@@ -63,18 +63,11 @@ namespace trogue {
         m_center_y(-1), m_center_x(-1),
         //m_delta(0), m_last_update(Time::now()),
         m_elapsed_time(0),
-        m_stacks(map.height() * map.width() * m_num_layers),
+        m_stacks(map.height(), map.width()),
         m_terrain_map(map),
         m_shadowcast(m_terrain_map) {
         }
 
-    EntityStack& Scene::getStack(int y, int x, int layer) {
-        return m_stacks[y*width()*layers() + x*layers() + layer];
-    }
-
-    const EntityStack& Scene::getStack(int y, int x, int layer) const {
-        return m_stacks[y*width()*layers() + x*layers() + layer];
-    }
 
     bool Scene::visible(int y, int x) const {
         return m_shadowcast.visible(y, x);
@@ -106,17 +99,15 @@ namespace trogue {
     }
 
     void Scene::add(int y, int x, int layer, tyra::EntityId id) {
-        EntityStack& stack = getStack(y, x, layer);
-        stack.add(id);
+        m_stacks[y][x].add(id, layer);
     }
 
-    void Scene::remove(int y, int x, int layer, tyra::EntityId id) {
-        EntityStack& stack = getStack(y, x, layer);
-        stack.remove(id);
+    void Scene::remove(int y, int x, tyra::EntityId id) {
+        m_stacks[y][x].remove(id);
     }
 
-    tyra::EntityId Scene::get(int y, int x, int layer) const {
-        return getStack(y, x, layer).get();
+    tyra::EntityId Scene::get(int y, int x) const {
+        return m_stacks[y][x].get();
     }
 
     int Scene::width() const {
