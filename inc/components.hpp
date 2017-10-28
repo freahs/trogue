@@ -44,6 +44,11 @@ namespace trogue {
         PositionComponent(int y, int x) : y(y), x(x) { }
     };
 
+    struct ShadowComponent : public tyra::Component {
+        int y, x;
+        ShadowComponent(int y, int x) : y(y), x(x) { }
+    };
+
     struct MovementComponent : public tyra::Component {
         int vy, vx;
         MovementComponent(int vy, int vx) : vy(vy), vx(vx) { } 

@@ -10,9 +10,7 @@
 namespace trogue {
 
     MovementSystem::MovementSystem(Scene& scene) : m_scene(&scene) {
-        requireAll<TileComponent>();
-        requireAll<PositionComponent>();
-        requireAll<MovementComponent>();
+        requireAll<TileComponent, PositionComponent, MovementComponent>();
     }
 
     Scene& MovementSystem::scene() {
