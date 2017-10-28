@@ -11,6 +11,8 @@
 
 namespace trogue {
 
+    /*
+
     Scene::EntityStack::EntityStack()
         : m_current(m_entities.end()) {
         }
@@ -54,6 +56,7 @@ namespace trogue {
             return *m_current;
         }
     }
+    */
 
     Scene::Scene(Map<bool> map, int num_layers)
         : m_num_layers(num_layers),
@@ -65,11 +68,11 @@ namespace trogue {
         m_shadowcast(m_terrain_map) {
         }
 
-    Scene::EntityStack& Scene::getStack(int y, int x, int layer) {
+    EntityStack& Scene::getStack(int y, int x, int layer) {
         return m_stacks[y*width()*layers() + x*layers() + layer];
     }
 
-    const Scene::EntityStack& Scene::getStack(int y, int x, int layer) const {
+    const EntityStack& Scene::getStack(int y, int x, int layer) const {
         return m_stacks[y*width()*layers() + x*layers() + layer];
     }
 

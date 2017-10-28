@@ -5,6 +5,7 @@
 
 #include "map.hpp"
 #include "shadowcast.hpp"
+#include "entitystack.hpp"
 
 #include <chrono>
 #include <set>
@@ -35,6 +36,7 @@ namespace trogue {
         // EntityStack keeps track of the content of a tile which id divided into layers.
         // If there are multiple entities occupying the same tile, these are rotated with
         // fixed intervals, which is handeled by the Scene.
+        /*
         class EntityStack {
         private:
             std::set<tyra::EntityId>                    m_entities;
@@ -47,6 +49,7 @@ namespace trogue {
             bool remove(tyra::EntityId);
             tyra::EntityId get() const;
         };
+        */
 
         int                         m_num_layers;
         int                         m_center_y;
