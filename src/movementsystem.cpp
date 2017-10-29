@@ -9,12 +9,8 @@
 
 namespace trogue {
 
-    MovementSystem::MovementSystem(Scene& scene) : m_scene(&scene) {
+    MovementSystem::MovementSystem() {
         requireAll<TileComponent, PositionComponent, MovementComponent>();
-    }
-
-    Scene& MovementSystem::scene() {
-        return *m_scene;
     }
 
     void MovementSystem::process(const tyra::System::Container& ids) {
@@ -29,11 +25,11 @@ namespace trogue {
 
             auto visible = world().component().valid<VisibleComponent>(id);
             if (visible) {
-                scene().remove(position->y, position->x, id);
+                world().scene().remove(position->y, position->x, id);
             }
-            if (scene().inRange(new_y, new_x)) {
+            if (world().scene().inRange(new_y, new_x)) {
                 bool blocked = false;
-                for (auto id : scene().all(new_y, new_x)) {
+                for (auto id : world().scene().all(new_y, new_x)) {
                     if (world().component().valid<AttributeComponent>(id)) {
                         if (world().component().get<AttributeComponent>(id).has(Attribute::SOLID)) {
                             if (!world().component().valid<CollisionComponent>(id)) {
@@ -52,7 +48,7 @@ namespace trogue {
             }
 
             if (visible) {
-                scene().add(position->y, position->x, tile->layer, id);
+                world().scene().add(position->y, position->x, tile->layer, id);
             }
 
             world().component().remove<MovementComponent>(id);

@@ -2,18 +2,15 @@
 #define TROGUE_PLAYERSYSTEM_H
 
 #include "tyra/tyra.hpp"
+#include "ecs.hpp"
 
 #include "scene.hpp"
 
 namespace trogue {
 
-    class PlayerSystem : public tyra::System {
-    private:
-        Scene*  m_scene;
-        Scene& scene();
-
+    class PlayerSystem : public TSystem {
     public:
-        PlayerSystem(Scene& scene);
+        PlayerSystem();
         void process(const tyra::System::Container&) override;
     };
 }

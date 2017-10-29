@@ -2,6 +2,7 @@
 #define TROGUE_VISIBILITYSYSTEM_H
 
 #include "tyra/tyra.hpp"
+#include "ecs.hpp"
 
 #include "scene.hpp"
 #include "shadowcast.hpp"
@@ -10,13 +11,9 @@
 
 namespace trogue {
 
-    class VisibilitySystem : public tyra::System {
-    private:
-        Scene*  m_scene;
-        Scene& scene();
-
+    class VisibilitySystem : public TSystem {
     public:
-        VisibilitySystem(Scene& scene);
+        VisibilitySystem();
         void process(const tyra::System::Container&) override;
     };
 }

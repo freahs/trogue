@@ -7,20 +7,15 @@
 
 namespace trogue {
 
-    VisibilitySystem::VisibilitySystem(Scene& scene) : m_scene(&scene) {
+    VisibilitySystem::VisibilitySystem() {
         requireAll<PositionComponent, TileComponent>();
     }
-
-    Scene& VisibilitySystem::scene() {
-        return *m_scene;
-    }
-
 
     void VisibilitySystem::process(const tyra::System::Container& ids) {
         auto pid = world().tag("PLAYER");
         auto player_pos = world().component().get<PositionComponent>(pid);
         auto player_sight = world().component().get<SightComponent>(pid);
-        scene().update(player_pos.y, player_pos.x, player_sight.range, world().delta());
+        world().scene().update(player_pos.y, player_pos.x, player_sight.range, world().delta());
 
         for (auto id : ids) {
             auto pos = world().component().get<PositionComponent>(id);
@@ -38,14 +33,14 @@ namespace trogue {
 
             // If the entitys position is visible, add a visibility component
             // and add a render component or update and existing one.
-            if(scene().visible(pos.y, pos.x)) {
+            if(world().scene().visible(pos.y, pos.x)) {
                 if (sc != nullptr) {
-                    scene().remove(sc->y, sc->x, id);
+                    world().scene().remove(sc->y, sc->x, id);
                     world().component().remove<ShadowComponent>(id);
                 }
                 if (vc == nullptr) {
                     world().component().add<VisibleComponent>(id);
-                    scene().add(pos.y, pos.x, tc.layer, id);
+                    world().scene().add(pos.y, pos.x, tc.layer, id);
                 }
 
                 // If it's not visible, remove its visibility component. It should keep
@@ -56,8 +51,8 @@ namespace trogue {
                     world().component().remove<VisibleComponent>(id);
                     world().component().add<ShadowComponent>(id, pos.y, pos.x);
                 }
-                if (sc != nullptr && scene().visible(sc->y, sc->x)) {
-                    scene().remove(sc->y, sc->x, id);
+                if (sc != nullptr && world().scene().visible(sc->y, sc->x)) {
+                    world().scene().remove(sc->y, sc->x, id);
                     world().component().remove<ShadowComponent>(id);
                 }
             }

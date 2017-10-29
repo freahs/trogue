@@ -2,6 +2,7 @@
 #define TROGUE_MOVEMENTSYSTEM_H
 
 #include "tyra/tyra.hpp"
+#include "ecs.hpp"
 
 #include "scene.hpp"
 
@@ -9,14 +10,10 @@
 
 namespace trogue {
 
-     class MovementSystem : public tyra::System {
-     private:
-         Scene* m_scene;
-         Scene& scene();
-
+     class MovementSystem : public TSystem {
      public:
+         MovementSystem();
          void process(const tyra::System::Container& ids) override;
-         MovementSystem(Scene& scene);
      };
 
 }

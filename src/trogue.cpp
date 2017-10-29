@@ -21,6 +21,8 @@
 
 #include "tyra/tyra.hpp"
 
+#include "ecs.hpp"
+
 typedef std::chrono::high_resolution_clock      Time;
 typedef std::chrono::milliseconds               Ms;
 typedef std::chrono::system_clock::time_point   TimePoint;
@@ -95,15 +97,13 @@ void create_some_enemies(tyra::World& world) {
 int main() {
 
     auto map = create_map();
-    trogue::Scene scene(map);
 
-
-    tyra::World world;
+    trogue::TWorld world(map);
     world.system().add<trogue::AISystem>();
-    world.system().add<trogue::MovementSystem>(scene);
-    world.system().add<trogue::VisibilitySystem>(scene);
-    world.system().add<trogue::PlayerSystem>(scene);
-    world.system().add<trogue::TileSystem>(scene, *trogue::Display::instance(), map.height(), map.width());
+    world.system().add<trogue::MovementSystem>();
+    world.system().add<trogue::VisibilitySystem>();
+    world.system().add<trogue::PlayerSystem>();
+    world.system().add<trogue::TileSystem>(*trogue::Display::instance(), map.height(), map.width());
     world.entity().create();
 
     create_player(world);
