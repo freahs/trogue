@@ -44,6 +44,8 @@ namespace tyra {
 
         std::map<std::string, EntityId> m_tags;
 
+        void notify_systems();
+
     protected:
         virtual void preUpdate() { }
         virtual void postUpdate() { }

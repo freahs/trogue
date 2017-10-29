@@ -68,7 +68,7 @@ namespace tyra {
         template <typename T> bool valid(EntityId) const;
         template <typename T> T& get(EntityId) const;
 
-        const ComponentSet::container_type& bits(EntityId) const;
+        const ComponentSet& bits(EntityId) const;
         std::unordered_set<EntityId>& updated() { return m_updated; }
         size_t size() const { return m_num_registered_components; }
     };

@@ -34,6 +34,7 @@ namespace tyra {
         typedef std::unordered_set<EntityId> Container;
 
     private:
+        Container                           m_updated;
         Container                           m_entities;
         World*                              m_world;
 
@@ -41,18 +42,17 @@ namespace tyra {
         void removeEntity(EntityId);
 
     protected:
-        World& world() {
-            return *m_world;
-        }
-
+        World& world() { return *m_world; }
+        const World& world() const { return *m_world; }
 
         virtual void process(const Container&) { }
 
         virtual void entityAdded(EntityId) { }
-        virtual void entityUpdated(EntityId) { }
         virtual void entityRemoved(EntityId) { }
 
     public:
+
+        Container& updated() { return m_updated; }
 
         virtual ~System() { }
 
