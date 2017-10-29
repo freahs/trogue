@@ -58,9 +58,8 @@ namespace trogue {
     }
     */
 
-    Scene::Scene(Map<bool> map, int num_layers)
-        : m_num_layers(num_layers),
-        m_center_y(-1), m_center_x(-1),
+    Scene::Scene(Map<bool> map)
+        : m_center_y(-1), m_center_x(-1),
         //m_delta(0), m_last_update(Time::now()),
         m_elapsed_time(0),
         m_stacks(map.height(), map.width()),
@@ -78,10 +77,6 @@ namespace trogue {
 
     bool Scene::visited(int y, int x) const {
         return m_shadowcast.visited(y, x);
-    }
-
-    bool Scene::blocked(int y, int x) const {
-        return m_terrain_map[y][x];
     }
 
     void Scene::update(int center_y, int center_x, int range, int delta) {
@@ -113,16 +108,16 @@ namespace trogue {
         return m_stacks[y][x].get();
     }
 
+    const EntityStack& Scene::all(int y, int x) const {
+        return m_stacks[y][x];
+    }
+
     int Scene::width() const {
         return m_terrain_map.width();
     }
 
     int Scene::height() const {
         return m_terrain_map.height();
-    }
-
-    int Scene::layers() const {
-        return m_num_layers;
     }
 
     int Scene::centerY() const {

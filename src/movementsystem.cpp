@@ -31,16 +31,30 @@ namespace trogue {
             if (visible) {
                 scene().remove(position->y, position->x, id);
             }
-            if (scene().inRange(new_y, position->x) && !scene().blocked(new_y, position->x)) {
-                position->y += movement->vy;
+            if (scene().inRange(new_y, new_x)) {
+                bool blocked = false;
+                for (auto id : scene().all(new_y, new_x)) {
+                    if (world().component().valid<AttributeComponent>(id)) {
+                        if (world().component().get<AttributeComponent>(id).has(Attribute::SOLID)) {
+                            if (!world().component().valid<CollisionComponent>(id)) {
+                                world().component().add<CollisionComponent>(id);
+                            }
+                            world().component().get<CollisionComponent>(id).add(id);
+                            blocked = true;
+                            break;
+                        }
+                    }
+                }
+                if(!blocked) {
+                    position->y += movement->vy;
+                    position->x += movement->vx;
+                }
             }
 
-            if (scene().inRange(position->y, new_x) && !scene().blocked(position->y, new_x)) {
-                position->x += movement->vx;
-            }
             if (visible) {
                 scene().add(position->y, position->x, tile->layer, id);
             }
+
             world().component().remove<MovementComponent>(id);
         }
 

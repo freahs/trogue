@@ -29,7 +29,6 @@ namespace trogue {
 
     class Scene {
     private:
-        int                 m_num_layers;
         int                 m_center_y;
         int                 m_center_x;
         int                 m_elapsed_time;
@@ -38,20 +37,20 @@ namespace trogue {
         Shadowcast          m_shadowcast;
 
     public:
-        Scene(Map<bool> map, int num_layers);
+        Scene(Map<bool> map);
 
         bool visible(int row, int col) const;
         bool visited(int row, int col) const;
-        bool blocked(int row, int col) const;
 
         void update(int y, int x, int range, int delta);
         void add(int row, int col, int layer, tyra::EntityId id);
         void remove(int row, int col, tyra::EntityId id);
         tyra::EntityId get(int row, int col) const;
 
+        const EntityStack& all(int row, int col) const;
+
         int width() const;
         int height() const;
-        int layers() const;
 
         int centerY() const;
         int centerX() const;

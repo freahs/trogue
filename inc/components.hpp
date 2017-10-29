@@ -4,6 +4,7 @@
 #include "tyra/componentmanager.hpp"
 
 #include "tile.hpp"
+#include <set>
 
 #include <string>
 
@@ -26,12 +27,20 @@ namespace trogue {
         }
     };
 
+    struct CollisionComponent : public tyra::Component {
+        std::vector<tyra::EntityId> targets;
+        void add(tyra::EntityId id) { targets.push_back(id); }
+    };
+
+
+    enum class Attribute {OPAQUE, SOLID};
 
     struct AttributeComponent : public tyra::Component {
-        bool translucent = true;
-        bool solid = false;
-        AttributeComponent(bool translucent, bool solid)
-        : translucent(translucent), solid(solid) { }
+        std::set<Attribute> attributes;
+        AttributeComponent() = default;
+        AttributeComponent(std::initializer_list<Attribute> attribs) : attributes(attribs) { }
+        void add(Attribute attribute) { attributes.insert(attribute); }
+        bool has(Attribute attribute) { return attributes.find(attribute) != attributes.end(); }
     };
 
     struct SightComponent : public tyra::Component {
