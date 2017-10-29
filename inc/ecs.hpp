@@ -10,7 +10,7 @@ namespace trogue {
         Scene m_scene;
 
     public:
-        TWorld(const Map<bool>& map) : tyra::World(), m_scene(map) { }
+        TWorld(int height, int width) : tyra::World(), m_scene(height, width){ }
         Scene& scene() { return m_scene; }
         const Scene& scene() const { return m_scene; }
 

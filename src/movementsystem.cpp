@@ -24,9 +24,13 @@ namespace trogue {
             auto new_x = position->x + movement->vx;
 
             auto visible = world().component().valid<VisibleComponent>(id);
-            if (visible) {
-                world().scene().remove(position->y, position->x, id);
+            auto opaque = false;
+            if (world().component().valid<AttributeComponent>(id)) {
+                if (world().component().get<AttributeComponent>(id).has(Attribute::OPAQUE)) {
+                    opaque = true;
+                }
             }
+
             if (world().scene().inRange(new_y, new_x)) {
                 bool blocked = false;
                 for (auto id : world().scene().all(new_y, new_x)) {
@@ -42,13 +46,13 @@ namespace trogue {
                     }
                 }
                 if(!blocked) {
+                    if (visible) { world().scene().remove(position->y, position->x, id); }
+                    if (opaque) { world().scene().opaque(position->y, position->x, false); }
                     position->y += movement->vy;
                     position->x += movement->vx;
+                    if (visible) { world().scene().add(position->y, position->x, tile->layer, id); }
+                    if (opaque) { world().scene().opaque(position->y, position->x, true); }
                 }
-            }
-
-            if (visible) {
-                world().scene().add(position->y, position->x, tile->layer, id);
             }
 
             world().component().remove<MovementComponent>(id);

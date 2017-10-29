@@ -11,62 +11,17 @@
 
 namespace trogue {
 
-    /*
 
-    Scene::EntityStack::EntityStack()
-        : m_current(m_entities.end()) {
-        }
-
-    void Scene::EntityStack::update() {
-        if (m_entities.size() != 0) {
-            ++m_current;
-            if (m_current == m_entities.end()) {
-                m_current = m_entities.begin();
-            }
-        }
+    Scene::Scene(int height, int width)
+    : m_center_y(-1), m_center_x(-1),
+    m_elapsed_time(0),
+    m_stacks(height, width), 
+    m_shadowcast(height, width) {
     }
 
-    bool Scene::EntityStack::add(tyra::EntityId id) {
-        auto res = m_entities.insert(id);
-        m_current = res.first;
-        return res.second;
+    void Scene::opaque(int row, int col, bool opaque) {
+        m_shadowcast.opaque(row, col, opaque);
     }
-
-    bool Scene::EntityStack::remove(tyra::EntityId id) {
-        if (m_current != m_entities.end()) {
-            tyra::EntityId current = *m_current;
-            auto next = std::next(m_current, 1);
-            auto res = m_entities.erase(id);
-            if (current == id) {
-                if (next == m_entities.end()) {
-                    m_current = m_entities.begin();
-                } else {
-                    m_current = next;
-                }
-            }
-            return res;
-        }
-        return false;
-    }
-
-    tyra::EntityId Scene::EntityStack::get() const {
-        if (m_current == m_entities.end()) {
-            return -1;
-        } else {
-            return *m_current;
-        }
-    }
-    */
-
-    Scene::Scene(Map<bool> map)
-        : m_center_y(-1), m_center_x(-1),
-        //m_delta(0), m_last_update(Time::now()),
-        m_elapsed_time(0),
-        m_stacks(map.height(), map.width()),
-        m_terrain_map(map),
-        m_shadowcast(m_terrain_map) {
-        }
-
 
     bool Scene::visible(int y, int x) const {
         if (y == m_center_y && x == m_center_x) {
@@ -80,11 +35,9 @@ namespace trogue {
     }
 
     void Scene::update(int center_y, int center_x, int range, int delta) {
-        if (m_center_y != center_y || m_center_x != center_x) {
-            m_center_y = center_y;
-            m_center_x = center_x;
-            m_shadowcast.update(center_y, center_x, range);
-        }
+        m_center_y = center_y;
+        m_center_x = center_x;
+        m_shadowcast.update(center_y, center_x, range);
 
         m_elapsed_time += delta;
 
@@ -113,11 +66,11 @@ namespace trogue {
     }
 
     int Scene::width() const {
-        return m_terrain_map.width();
+        return m_shadowcast.width();
     }
 
     int Scene::height() const {
-        return m_terrain_map.height();
+        return m_shadowcast.height();
     }
 
     int Scene::centerY() const {
@@ -129,32 +82,7 @@ namespace trogue {
     }
 
     bool Scene::inRange(int y, int x) const {
-        return m_terrain_map.inRange(y, x);
-    }
-
-    void Scene::print() const {
-        for (int y = 0; y < height(); ++y) {
-            for (int x = 0; x < width(); ++x) {
-                if (y == m_center_y && x == m_center_x) {
-                    std::cout << format::fg(4) << "@";
-                } else if(visible(y,x)) {
-                    if (!m_terrain_map[y][x]) {
-                        std::cout << format::fg(255) << ".";
-                    } else {
-                        std::cout << format::fg(255) << "X";
-                    }
-                } else if (visited(y, x)) {
-                    if (!m_terrain_map[y][x]) {
-                        std::cout << format::fg(243) << ".";
-                    } else {
-                        std::cout << format::fg(243) << "X";
-                    }
-                } else {
-                    std::cout << format::fg(0) << " ";
-                }
-            }
-            std::cout << std::endl;
-        }
+        return m_shadowcast.inRange(y, x);
     }
 
 }

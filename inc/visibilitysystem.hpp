@@ -12,6 +12,8 @@
 namespace trogue {
 
     class VisibilitySystem : public TSystem {
+    private:
+
     public:
         VisibilitySystem();
         void process(const tyra::System::Container&) override;

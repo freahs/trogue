@@ -18,6 +18,7 @@
 #include "components.hpp"
 #include "tile.hpp"
 #include "visibilitysystem.hpp"
+#include "terrainsystem.hpp"
 
 #include "tyra/tyra.hpp"
 
@@ -27,8 +28,8 @@ typedef std::chrono::high_resolution_clock      Time;
 typedef std::chrono::milliseconds               Ms;
 typedef std::chrono::system_clock::time_point   TimePoint;
 
-int map_height = 30;
-int map_width = 30;
+int map_height = 150;
+int map_width = 150;
 
 void create_player(tyra::World& world) {
     auto n_tile = trogue::Tile::create("@", 1, -1);
@@ -43,27 +44,18 @@ void create_player(tyra::World& world) {
     world.tag("PLAYER", pid);
 }
 
-trogue::Map<bool> create_map() {
-    trogue::Map<bool> map(map_width, map_height);
-    map[map.height()/2 + 1][map.width()/2 + 1] = true;
-    map[map.height()/2 + 2][map.width()/2 + 1] = true;
-    map[map.height()/2 + 3][map.width()/2 + 1] = true;
-    map[map.height()/2 + 4][map.width()/2 + 1] = true;
-    return map;
-}
-
-void create_tiles(const trogue::Map<bool> map, tyra::World& world) {
+void create_tiles(tyra::World& world) {
     auto wall_n_tile = trogue::Tile::create("X", 250, -1);
     auto wall_b_tile = trogue::Tile::create("X", 240, -1);
     auto floor_n_tile = trogue::Tile::create(".", 250, -1);
     auto floor_b_tile = trogue::Tile::create(".", 240, -1);
-    for (int y = 0; y < map.height(); ++y) {
-        for (int x = 0; x < map.width(); ++x) {
+    for (int y = 0; y < map_height; ++y) {
+        for (int x = 0; x < map_width; ++x) {
             tyra::EntityId id = world.entity().create();
             world.component().add<trogue::PositionComponent>(id, y, x);
-            if (map[y][x]){
+            if (y == map_height/2 && x > 3 && x < map_width - 3){
                 world.component().add<trogue::TileComponent>(id, wall_n_tile, wall_b_tile, 0);
-                world.component().add<trogue::AttributeComponent>(id, trogue::Attribute::SOLID);
+                world.component().add<trogue::AttributeComponent>(id, trogue::Attribute::SOLID, trogue::Attribute::OPAQUE);
             } else {
                 world.component().add<trogue::TileComponent>(id, floor_n_tile, floor_b_tile, 0);
             }
@@ -90,24 +82,22 @@ void create_some_enemies(tyra::World& world) {
         world.component().add<trogue::TileComponent>(eid, normal, blocked, 1);
         world.component().add<trogue::SightComponent>(eid, 20);
         world.component().add<trogue::AIComponent>(eid, (rand() % 100) + 1000);
-        world.component().add<trogue::AttributeComponent>(eid, trogue::Attribute::SOLID);
+        world.component().add<trogue::AttributeComponent>(eid, trogue::Attribute::SOLID, trogue::Attribute::OPAQUE);
     }
 }
 
 int main() {
-
-    auto map = create_map();
-
-    trogue::TWorld world(map);
+    trogue::TWorld world(map_height, map_width);
+    world.system().add<trogue::TerrainSystem>();
     world.system().add<trogue::AISystem>();
     world.system().add<trogue::MovementSystem>();
     world.system().add<trogue::VisibilitySystem>();
     world.system().add<trogue::PlayerSystem>();
-    world.system().add<trogue::TileSystem>(*trogue::Display::instance(), map.height(), map.width());
+    world.system().add<trogue::TileSystem>(*trogue::Display::instance(), map_height, map_width);
     world.entity().create();
 
     create_player(world);
-    create_tiles(map, world);
+    create_tiles(world);
     create_some_stuff(world);
     create_some_enemies(world);
 

@@ -33,12 +33,13 @@ namespace trogue {
         int                 m_center_x;
         int                 m_elapsed_time;
         Map<EntityStack>    m_stacks;
-        Map<bool>           m_terrain_map;
         Shadowcast          m_shadowcast;
 
     public:
-        Scene(Map<bool> map);
+        Scene(int height, int width);
 
+        bool opaque(int row, int col) const;
+        void opaque(int row, int col, bool opaque);
         bool visible(int row, int col) const;
         bool visited(int row, int col) const;
 

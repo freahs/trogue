@@ -8,12 +8,17 @@ namespace trogue {
         {-1,0,0,-1}, {0,-1,-1,0}, {0,1,-1,0}, {1,0,0,-1}
     };
 
-    Shadowcast::Shadowcast(const Map<bool>& opaque_map) :
-        m_opaque(opaque_map),
+    Shadowcast::Shadowcast(int height, int width) :
+        m_num_opaque(height, width),
+        m_visible(height, width),
+        m_visited(height, width){} 
+    Shadowcast::Shadowcast(const Map<int>& opaque_map) :
+        m_num_opaque(opaque_map),
         m_visible(opaque_map.height(), opaque_map.width()),
         m_visited(opaque_map.height(), opaque_map.width()) {
         }
-    
+
+
     void Shadowcast::cast(int center_x, int center_y, int radius, int row, float start_slope, float stop_slope, const Mod& m) {
         if (start_slope < stop_slope) {
             return;
@@ -37,16 +42,16 @@ namespace trogue {
 
                 int abs_y = center_y + x*m.yx + y*m.yy;
                 int abs_x = center_x + x*m.xx + y*m.xy;
-                if (start_slope >= r_slope && m_opaque.inRange(abs_y, abs_x) && x*x + y*y < radius*radius) {
+                if (start_slope >= r_slope && inRange(abs_y, abs_x) && x*x + y*y < radius*radius) {
                     m_visible[abs_y][abs_x] = true;
                     m_visited[abs_y][abs_x] = true;
 
-                    if (blocked && m_opaque[abs_y][abs_x]) {
+                    if (blocked && opaque(abs_y,abs_x)) {
                         next_start_slope = r_slope;
                     } else if (blocked) {
                         blocked = false;
                         start_slope = next_start_slope;
-                    } else if (m_opaque[abs_y][abs_x]) {
+                    } else if (opaque(abs_y, abs_x)) {
                         blocked = true;
                         next_start_slope = r_slope;
                         cast(center_x, center_y, radius, 1 - y, start_slope, l_slope, m);
@@ -74,7 +79,24 @@ namespace trogue {
         return m_visited[y][x];
     }
 
-    void Shadowcast::set(int y, int x, bool opaque) {
-        m_opaque[y][x] = opaque;
+    bool Shadowcast::opaque(int y, int x) const {
+        return m_num_opaque[y][x] > 0;
+    }
+
+    void Shadowcast::opaque(int y, int x, bool opaque) {
+        if (opaque) { m_num_opaque[y][x] += 1; }
+        else        { m_num_opaque[y][x] -= 1; }
+    }
+
+    int Shadowcast::height() const {
+        return m_num_opaque.height();
+    }
+
+    int Shadowcast::width() const {
+        return m_num_opaque.width();
+    }
+
+    bool Shadowcast::inRange(int y, int x) const {
+        return m_num_opaque.inRange(y, x);
     }
 }
