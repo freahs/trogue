@@ -17,6 +17,7 @@
 #include "aisystem.hpp"
 #include "components.hpp"
 #include "tile.hpp"
+#include "visibilitysystem.hpp"
 
 #include "tyra/tyra.hpp"
 
@@ -35,6 +36,7 @@ void create_player(tyra::World& world) {
     world.component().add<trogue::TileComponent>(pid, n_tile, h_tile, 1);
     world.component().add<trogue::SightComponent>(pid, 20);
     world.component().add<trogue::PlayerComponent>(pid);
+    world.component().add<trogue::VisibleComponent>(pid);
     world.tag("PLAYER", pid);
 }
 
@@ -96,6 +98,7 @@ int main() {
     tyra::World world;
     world.system().add<trogue::AISystem>();
     world.system().add<trogue::MovementSystem>(scene);
+    world.system().add<trogue::VisibilitySystem>(scene);
     world.system().add<trogue::PlayerSystem>(scene);
     world.system().add<trogue::TileSystem>(scene, *trogue::Display::instance(), map.height(), map.width());
     world.entity().create();

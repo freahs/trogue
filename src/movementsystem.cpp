@@ -27,7 +27,10 @@ namespace trogue {
             auto new_y = position->y + movement->vy;
             auto new_x = position->x + movement->vx;
 
-            scene().remove(position->y, position->x, id);
+            auto visible = world().component().valid<VisibleComponent>(id);
+            if (visible) {
+                scene().remove(position->y, position->x, id);
+            }
             if (scene().inRange(new_y, position->x) && !scene().blocked(new_y, position->x)) {
                 position->y += movement->vy;
             }
@@ -35,7 +38,9 @@ namespace trogue {
             if (scene().inRange(position->y, new_x) && !scene().blocked(position->y, new_x)) {
                 position->x += movement->vx;
             }
-            scene().add(position->y, position->x, tile->layer, id);
+            if (visible) {
+                scene().add(position->y, position->x, tile->layer, id);
+            }
             world().component().remove<MovementComponent>(id);
         }
 

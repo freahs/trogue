@@ -70,6 +70,9 @@ namespace trogue {
 
 
     bool Scene::visible(int y, int x) const {
+        if (y == m_center_y && x == m_center_x) {
+            return true;
+        }
         return m_shadowcast.visible(y, x);
     }
 
