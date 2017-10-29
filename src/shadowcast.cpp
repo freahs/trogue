@@ -8,14 +8,13 @@ namespace trogue {
         {-1,0,0,-1}, {0,-1,-1,0}, {0,1,-1,0}, {1,0,0,-1}
     };
 
-    Shadowcast::Shadowcast(const Map<bool>& terrain_map) :
-        m_terrain_map(terrain_map),
-        m_visible_map(terrain_map.height(), terrain_map.width()),
-        m_visited_map(terrain_map.height(), terrain_map.width()) {
+    Shadowcast::Shadowcast(const Map<bool>& opaque_map) :
+        m_opaque(opaque_map),
+        m_visible(opaque_map.height(), opaque_map.width()),
+        m_visited(opaque_map.height(), opaque_map.width()) {
         }
-
-
-   void Shadowcast::cast(int center_x, int center_y, int radius, int row, float start_slope, float stop_slope, const Mod& m) {
+    
+    void Shadowcast::cast(int center_x, int center_y, int radius, int row, float start_slope, float stop_slope, const Mod& m) {
         if (start_slope < stop_slope) {
             return;
         }
@@ -38,16 +37,16 @@ namespace trogue {
 
                 int abs_y = center_y + x*m.yx + y*m.yy;
                 int abs_x = center_x + x*m.xx + y*m.xy;
-                if (start_slope >= r_slope && m_terrain_map.inRange(abs_y, abs_x) && x*x + y*y < radius*radius) {
-                    m_visible_map[abs_y][abs_x] = true;
-                    m_visited_map[abs_y][abs_x] = true;
+                if (start_slope >= r_slope && m_opaque.inRange(abs_y, abs_x) && x*x + y*y < radius*radius) {
+                    m_visible[abs_y][abs_x] = true;
+                    m_visited[abs_y][abs_x] = true;
 
-                    if (blocked && m_terrain_map[abs_y][abs_x]) {
+                    if (blocked && m_opaque[abs_y][abs_x]) {
                         next_start_slope = r_slope;
                     } else if (blocked) {
                         blocked = false;
                         start_slope = next_start_slope;
-                    } else if (m_terrain_map[abs_y][abs_x]) {
+                    } else if (m_opaque[abs_y][abs_x]) {
                         blocked = true;
                         next_start_slope = r_slope;
                         cast(center_x, center_y, radius, 1 - y, start_slope, l_slope, m);
@@ -61,17 +60,21 @@ namespace trogue {
     }
 
     void Shadowcast::update(int center_y, int center_x, int radius) {
-        m_visible_map.clear();
+        m_visible.clear();
         for (auto i = 0; i < 8; ++i) {
             cast(center_x, center_y, radius, 1, 1.0, 0.0, mods[i]);
         }
     }
 
     bool Shadowcast::visible(int y, int x) const {
-        return m_visible_map[y][x];
+        return m_visible[y][x];
     }
 
     bool Shadowcast::visited(int y, int x) const {
-        return m_visited_map[y][x];
+        return m_visited[y][x];
+    }
+
+    void Shadowcast::set(int y, int x, bool opaque) {
+        m_opaque[y][x] = opaque;
     }
 }
