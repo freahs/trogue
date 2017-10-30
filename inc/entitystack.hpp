@@ -36,10 +36,12 @@ namespace trogue {
         const_iterator end() const;
 
         EntityStack();
+        void rotate();
         void update();
         bool add(const data_type&, const meta_type&);
         bool remove(const data_type&);
         data_type get() const;
+        int size() const { return m_items.size(); }
     };
 
 

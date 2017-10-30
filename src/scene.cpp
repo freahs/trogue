@@ -14,7 +14,7 @@ namespace trogue {
 
     Scene::Scene(int height, int width)
     : m_height(height), m_width(width),
-    m_elapsed_time(0),
+    m_elapsed_time(s_tile_rotation_time),
     m_stacks(height, width) { 
     }
 
@@ -22,11 +22,14 @@ namespace trogue {
 
         m_elapsed_time += delta;
 
-        if (m_elapsed_time > s_tile_rotation_time) {
+        if (m_elapsed_time >= s_tile_rotation_time) {
             m_elapsed_time = 0;
             for (auto &s : m_stacks) {
-                s.update();
+                s.rotate();
             }
+        }
+        for (auto &s : m_stacks) {
+            s.update();
         }
     }
 

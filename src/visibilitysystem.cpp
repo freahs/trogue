@@ -25,7 +25,6 @@ namespace trogue {
                 }
             }
         }
-        world().scene().update(world().delta());
         s_cast.update(player_pos.y, player_pos.x, player_sight.range);
         s_cast.visible(player_pos.y, player_pos.x, true);
 

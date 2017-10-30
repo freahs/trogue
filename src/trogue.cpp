@@ -39,7 +39,6 @@ void create_player(tyra::World& world) {
     world.component().add_as<trogue::TileComponent, trogue::SharedTileComponent>(pid, n_tile, h_tile, 1);
     world.component().add<trogue::SightComponent>(pid, 20);
     world.component().add<trogue::PlayerComponent>(pid);
-    world.component().add<trogue::VisibleComponent>(pid);
     world.component().add<trogue::AttributeComponent>(pid, trogue::Attribute::SOLID);
     world.tag("PLAYER", pid);
 }

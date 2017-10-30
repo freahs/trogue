@@ -21,10 +21,14 @@ namespace trogue {
     EntityStack::const_iterator EntityStack::end() const {
         return const_iterator(m_items.end());
     }
+    void EntityStack::rotate() {
+        if (m_items.size() != 0) {
+            ++m_current;
+        }
+    }
 
     void EntityStack::update() {
         if (m_items.size() != 0) {
-            ++m_current;
             if (m_current == m_items.end()) {
                 m_current = m_items.begin();
             } else if (m_current->second < m_items.begin()->second) {
