@@ -71,15 +71,31 @@ namespace trogue {
         void update(int new_y, int new_x) { y = new_y; x = new_x; }
     };
 
-    class TileComponent : public tyra::Component {
+    struct TileComponent : public tyra::Component {
+        int layer;
+        TileComponent(int layer) : layer(layer) { }
+        virtual const Tile& normal() const = 0;
+        virtual const Tile& blocked() const = 0;
+    };
+
+    class SharedTileComponent : public TileComponent {
     private:
-        int id_a;
+        int id_n;
         int id_b;
     public:
-        int layer;
-        TileComponent(int id, int blocked_id, int layer) : id_a(id), id_b(blocked_id), layer(layer) { }
-        const Tile& normal() const { return Tile::get(id_a); }
-        const Tile& blocked() const { return Tile::get(id_b); }
+        SharedTileComponent(int id_n, int id_b, int layer)
+        : TileComponent(layer), id_n(id_n), id_b(id_b){ }
+        const Tile& normal() const override { return Tile::get(id_n); }
+        const Tile& blocked() const override { return Tile::get(id_b); }
+    };
+
+    class CustomTileComponent : public TileComponent {
+    private:
+        const Tile tile_n;
+        const Tile tile_b;
+    public:
+        CustomTileComponent(Tile&& tile_n, Tile&& tile_b, int layer)
+        : TileComponent(layer), tile_n(tile_n), tile_b(tile_b) { }
     };
 
 }

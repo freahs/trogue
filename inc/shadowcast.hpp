@@ -28,6 +28,7 @@ namespace trogue {
         void update(int y, int x, int radius);
 
         bool visible(int y, int x) const;
+        void visible(int y, int x, bool visible);
         bool visited(int y, int x) const;
 
         bool opaque(int y, int x) const;

@@ -75,6 +75,10 @@ namespace trogue {
         return m_visible[y][x];
     }
 
+    void Shadowcast::visible(int y, int x, bool visible) {
+        m_visible[y][x] = visible;
+    }
+
     bool Shadowcast::visited(int y, int x) const {
         return m_visited[y][x];
     }

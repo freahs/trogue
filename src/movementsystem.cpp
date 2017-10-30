@@ -47,11 +47,11 @@ namespace trogue {
                 }
                 if(!blocked) {
                     if (visible) { world().scene().remove(position->y, position->x, id); }
-                    if (opaque) { world().scene().opaque(position->y, position->x, false); }
+                    //if (opaque) { world().scene().opaque(position->y, position->x, false); }
                     position->y += movement->vy;
                     position->x += movement->vx;
                     if (visible) { world().scene().add(position->y, position->x, tile->layer, id); }
-                    if (opaque) { world().scene().opaque(position->y, position->x, true); }
+                    //if (opaque) { world().scene().opaque(position->y, position->x, true); }
                 }
             }
 

@@ -13,31 +13,12 @@ namespace trogue {
 
 
     Scene::Scene(int height, int width)
-    : m_center_y(-1), m_center_x(-1),
+    : m_height(height), m_width(width),
     m_elapsed_time(0),
-    m_stacks(height, width), 
-    m_shadowcast(height, width) {
+    m_stacks(height, width) { 
     }
 
-    void Scene::opaque(int row, int col, bool opaque) {
-        m_shadowcast.opaque(row, col, opaque);
-    }
-
-    bool Scene::visible(int y, int x) const {
-        if (y == m_center_y && x == m_center_x) {
-            return true;
-        }
-        return m_shadowcast.visible(y, x);
-    }
-
-    bool Scene::visited(int y, int x) const {
-        return m_shadowcast.visited(y, x);
-    }
-
-    void Scene::update(int center_y, int center_x, int range, int delta) {
-        m_center_y = center_y;
-        m_center_x = center_x;
-        m_shadowcast.update(center_y, center_x, range);
+    void Scene::update(int delta) {
 
         m_elapsed_time += delta;
 
@@ -66,23 +47,19 @@ namespace trogue {
     }
 
     int Scene::width() const {
-        return m_shadowcast.width();
+        return m_width;
     }
 
     int Scene::height() const {
-        return m_shadowcast.height();
-    }
-
-    int Scene::centerY() const {
-        return m_center_y;
-    }
-
-    int Scene::centerX() const {
-        return m_center_x;
+        return m_height;
     }
 
     bool Scene::inRange(int y, int x) const {
-        return m_shadowcast.inRange(y, x);
+        if (y < 0) return false;
+        if (y >= m_height) return false;
+        if (x < 0) return false;
+        if (x >= m_width) return false;
+        return true;
     }
 
 }

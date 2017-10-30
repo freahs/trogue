@@ -29,21 +29,15 @@ namespace trogue {
 
     class Scene {
     private:
-        int                 m_center_y;
-        int                 m_center_x;
+        int m_height;
+        int m_width;
         int                 m_elapsed_time;
         Map<EntityStack>    m_stacks;
-        Shadowcast          m_shadowcast;
 
     public:
         Scene(int height, int width);
 
-        bool opaque(int row, int col) const;
-        void opaque(int row, int col, bool opaque);
-        bool visible(int row, int col) const;
-        bool visited(int row, int col) const;
-
-        void update(int y, int x, int range, int delta);
+        void update(int delta);
         void add(int row, int col, int layer, tyra::EntityId id);
         void remove(int row, int col, tyra::EntityId id);
         tyra::EntityId get(int row, int col) const;
@@ -52,9 +46,6 @@ namespace trogue {
 
         int width() const;
         int height() const;
-
-        int centerY() const;
-        int centerX() const;
 
         bool inRange(int y, int x) const;
 

@@ -12,13 +12,14 @@ namespace trogue {
     private:
         static std::vector<Tile> s_tiles;
 
-        Tile(const std::string symbol, int color, int bg_color);
         Tile();
 
     public:
         std::string symbol;
         int         color;
         int         bg_color;
+
+        Tile(const std::string symbol, int color, int bg_color);
 
         static int create(const std::string symbol, int color, int bg_color);
         static const Tile& blank();

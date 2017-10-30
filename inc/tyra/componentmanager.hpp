@@ -64,6 +64,7 @@ namespace tyra {
         ~ComponentManager();
 
         template <typename T, typename... Args> void add(EntityId, Args&&...);
+        template <typename T, typename U, typename... Args> void add_as(EntityId, Args&&...);
         template <typename T> void remove(EntityId);
         template <typename T> bool valid(EntityId) const;
         template <typename T> T& get(EntityId) const;
@@ -78,6 +79,13 @@ namespace tyra {
         TypeId type_id = Type<Component>::id<T>();
         add(entity_id, type_id,  new T{std::forward<Args>(args)...});
 
+    }
+
+    template <typename T, typename U, typename... Args> void ComponentManager::add_as(EntityId entity_id, Args&&... args)	{
+        static_assert(std::is_base_of<Component, T>::value, "ComponentManager::add_as: T must be derived from Component");
+        static_assert(std::is_base_of<T, U>::value, "ComponentManager::add_as: U must be derived from T");
+        TypeId type_id = Type<Component>::id<T>();
+        add(entity_id, type_id,  static_cast<T*>(new U{std::forward<Args>(args)...}));
     }
 
     template <typename T> void ComponentManager::remove(EntityId entity_id) {

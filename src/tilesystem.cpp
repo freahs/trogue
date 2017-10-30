@@ -21,19 +21,24 @@ namespace trogue {
         int disp_half_width  = display().width()/2;
 
 
+        auto pid = world().tag("PLAYER");
+        auto player_pos = world().component().get<PositionComponent>(pid);
+
         for(int rel_y = -disp_half_height; rel_y <= disp_half_height; ++rel_y) {
-            int scene_y =  world().scene().centerY() + rel_y;
+            int scene_y =  player_pos.y + rel_y;
             for (int rel_x = -disp_half_width; rel_x <= disp_half_width; ++rel_x) {
-                int scene_x = world().scene().centerX() + rel_x;
+                int scene_x = player_pos.x + rel_x;
                 auto tile = &Tile::blank();
                 if (world().scene().inRange(scene_y, scene_x)) {
                     tyra::EntityId id = world().scene().get(scene_y, scene_x);
                     if (id != tyra::EntityId(-1)) {
-                        auto tc = world().component().get<TileComponent>(id);
-                        if (world().scene().visible(scene_y, scene_x)) {
-                            tile = &tc.normal();
-                        } else if (world().scene().visited(scene_y, scene_x)) {
-                            tile = &tc.blocked();
+                        auto tc = &world().component().get<TileComponent>(id);
+                        if (world().component().valid<VisibleComponent>(id)) {
+                        //if (world().scene().visible(scene_y, scene_x)) {
+                            tile = &tc->normal();
+                        //} else if (world().scene().visited(scene_y, scene_x)) {
+                        } else if (world().component().valid<ShadowComponent>(id)) {
+                            tile = &tc->blocked();
                         }
                     }
                 }
@@ -44,15 +49,19 @@ namespace trogue {
     }
 
     void TileSystem::entityAdded(tyra::EntityId id) {
+        /*
         auto position = world().component().get<PositionComponent>(id);
-        auto tile = world().component().get<TileComponent>(id);
-        world().scene().add(position.y, position.x, tile.layer, id);
+        auto tile = &world().component().get<TileComponent>(id);
+        world().scene().add(position.y, position.x, tile->layer, id);
+        */
     }
 
     void TileSystem::entityRemoved(tyra::EntityId id) {
+        /*
         auto position = world().component().get<PositionComponent>(id);
-        auto tile = world().component().get<TileComponent>(id);
+        auto tile = &world().component().get<TileComponent>(id);
         world().scene().remove(position.y, position.x, id);
+        */
     }
 
 }
