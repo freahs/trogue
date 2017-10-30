@@ -5,6 +5,7 @@
 
 #include "tile.hpp"
 #include <set>
+#include <cstdlib>
 
 #include <string>
 
@@ -96,6 +97,50 @@ namespace trogue {
     public:
         CustomTileComponent(Tile&& tile_n, Tile&& tile_b, int layer)
         : TileComponent(layer), tile_n(tile_n), tile_b(tile_b) { }
+        const Tile& normal() const override { return tile_n; }
+        const Tile& blocked() const override { return tile_b; }
+    };
+
+    class AnimationTileComponent : public TileComponent {
+    private:
+        Tile** ptr_to_normal_ptr;
+        Tile** ptr_to_blocked_ptr;
+    public:
+        AnimationTileComponent(Tile** normal_ptr, Tile** blocked_ptr, int layer)
+        : TileComponent(layer),
+        ptr_to_normal_ptr(normal_ptr), ptr_to_blocked_ptr(blocked_ptr) { }
+        const Tile& normal() const override { return **ptr_to_normal_ptr;}
+        const Tile& blocked() const override { return **ptr_to_blocked_ptr;}
+    };
+
+    struct AnimationComponent : public tyra::Component {
+        Tile* normal_ptr = nullptr;
+        Tile* blocked_ptr = nullptr;
+        AnimationComponent() : normal_ptr(nullptr), blocked_ptr(nullptr) { }
+        virtual void update(int delta) = 0;
+    };
+
+    struct FireAnimationComponent : public AnimationComponent {
+        int elapsed = 0;
+        int limit = 1;
+        Tile normal;
+        Tile blocked;
+        FireAnimationComponent() : AnimationComponent(), normal(Tile::blank()), blocked(Tile::blank()) {
+            update(10);
+        }
+
+        void update(int delta) override {
+            elapsed += delta;
+            if (elapsed >= limit) {
+                elapsed %= limit;
+                limit = rand() % 300 + 100;
+                static const std::array<int, 5> colors = {{208, 214, 220, 226, 160}};
+                normal = Tile("~", colors[rand() %5], colors[rand() %5]);
+                blocked = Tile("~", colors[rand() %5], colors[rand() %5]);
+                normal_ptr = &normal;
+                blocked_ptr = &blocked;
+            }
+        }
     };
 
 }

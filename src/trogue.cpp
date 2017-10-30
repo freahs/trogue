@@ -19,6 +19,7 @@
 #include "tile.hpp"
 #include "visibilitysystem.hpp"
 #include "terrainsystem.hpp"
+#include "animationsystem.hpp"
 
 #include "tyra/tyra.hpp"
 
@@ -30,6 +31,14 @@ typedef std::chrono::system_clock::time_point   TimePoint;
 
 int map_height = 50;
 int map_width = 50;
+
+void create_animation(tyra::World& world) {
+    auto id = world.entity().create();
+    world.component().add_as<trogue::AnimationComponent, trogue::FireAnimationComponent>(id);
+    auto ac = &world.component().get<trogue::AnimationComponent>(id);
+    world.component().add_as<trogue::TileComponent, trogue::AnimationTileComponent>(id, &ac->normal_ptr, &ac->blocked_ptr, 5);
+    world.component().add<trogue::PositionComponent>(id, 5, 5);
+}
 
 void create_player(tyra::World& world) {
     auto n_tile = trogue::Tile::create("@", 1, -1);
@@ -87,11 +96,11 @@ void create_some_enemies(tyra::World& world) {
 
 int main() {
     trogue::TWorld world(map_height, map_width);
-    world.system().add<trogue::TerrainSystem>();
+    world.system().add<trogue::PlayerSystem>();
     world.system().add<trogue::AISystem>();
+    world.system().add<trogue::AnimationSystem>();
     world.system().add<trogue::MovementSystem>();
     world.system().add<trogue::VisibilitySystem>();
-    world.system().add<trogue::PlayerSystem>();
     world.system().add<trogue::TileSystem>(*trogue::Display::instance(), map_height, map_width);
     world.entity().create();
 
@@ -99,6 +108,7 @@ int main() {
     create_tiles(world);
     create_some_stuff(world);
     create_some_enemies(world);
+    create_animation(world);
 
     trogue::Input input;
     trogue::Key res = trogue::Key::NONE;
