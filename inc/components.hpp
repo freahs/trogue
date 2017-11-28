@@ -6,6 +6,7 @@
 #include "tile.hpp"
 #include <set>
 #include <cstdlib>
+#include <algorithm>
 
 #include <string>
 
@@ -92,13 +93,15 @@ namespace trogue {
 
     class CustomTileComponent : public TileComponent {
     private:
-        const Tile tile_n;
-        const Tile tile_b;
+        Tile tile_n;
+        Tile tile_b;
     public:
         CustomTileComponent(Tile&& tile_n, Tile&& tile_b, int layer)
         : TileComponent(layer), tile_n(tile_n), tile_b(tile_b) { }
         const Tile& normal() const override { return tile_n; }
         const Tile& blocked() const override { return tile_b; }
+        Tile& normal() { return tile_n; }
+        Tile& blocked() { return tile_b; }
     };
 
     class AnimationTileComponent : public TileComponent {
@@ -133,10 +136,17 @@ namespace trogue {
             elapsed += delta;
             if (elapsed >= limit) {
                 elapsed %= limit;
-                limit = rand() % 300 + 100;
-                static const std::array<int, 5> colors = {{208, 214, 220, 226, 160}};
-                normal = Tile("~", colors[rand() %5], colors[rand() %5]);
-                blocked = Tile("~", colors[rand() %5], colors[rand() %5]);
+                limit = rand() % 100 + 10;
+                int r = rand() % 156 + 100;
+                float rf = r/256.0;
+                int g = std::min(static_cast<int>(rf*rf*0.4*256), 255);
+                int b = std::min(static_cast<int>(rf*rf*0.15*256), 255);
+                
+                int bg = r << 16 | g << 8 | b;
+                int fg = std::max(r-30, 0) << 16 | std::max(g-30, 0) | std::max(b-30,0);
+
+                normal = Tile("~", fg, bg);
+                blocked = Tile("~", bg, bg);
                 normal_ptr = &normal;
                 blocked_ptr = &blocked;
             }

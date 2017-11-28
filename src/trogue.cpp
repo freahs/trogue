@@ -41,8 +41,8 @@ void create_animation(tyra::World& world) {
 }
 
 void create_player(tyra::World& world) {
-    auto n_tile = trogue::Tile::create("@", 1, -1);
-    auto h_tile = trogue::Tile::create("@", 2, -1);
+    auto n_tile = trogue::Tile::create("@", 0xFFFF00, -1);
+    auto h_tile = trogue::Tile::create("@", 0xAAAA00, -1);
     auto pid = world.entity().create();
     world.component().add<trogue::PositionComponent>(pid, map_height/2, map_width/2);
     world.component().add_as<trogue::TileComponent, trogue::SharedTileComponent>(pid, n_tile, h_tile, 1);
@@ -53,10 +53,10 @@ void create_player(tyra::World& world) {
 }
 
 void create_tiles(tyra::World& world) {
-    auto wall_n_tile = trogue::Tile::create("X", 250, -1);
-    auto wall_b_tile = trogue::Tile::create("X", 240, -1);
-    auto floor_n_tile = trogue::Tile::create(".", 250, -1);
-    auto floor_b_tile = trogue::Tile::create(".", 240, -1);
+    auto wall_n_tile = trogue::Tile::create("X", 0x606060, -1);
+    auto wall_b_tile = trogue::Tile::create("X", 0x505050, -1);
+    auto floor_n_tile = trogue::Tile::create(".", 0x707070, -1);
+    auto floor_b_tile = trogue::Tile::create(".", 0x505050, -1);
     for (int y = 0; y < map_height; ++y) {
         for (int x = 0; x < map_width; ++x) {
             tyra::EntityId id = world.entity().create();
@@ -74,16 +74,16 @@ void create_tiles(tyra::World& world) {
 void create_some_stuff(tyra::World& world) {
     for (int i = 0; i < 3; ++i) {
         tyra::EntityId id = world.entity().create();
-        auto normal = trogue::Tile::create(std::to_string(i), 3+i, -1);
-        auto blocked = trogue::Tile::create(std::to_string(i), 13+i, -1);
+        auto normal = trogue::Tile::create(std::to_string(i), 0xFF << 4*i | 0x888888, -1);
+        auto blocked = trogue::Tile::create(std::to_string(i), 0xFF << 5*i | 0x666666, -1);
         world.component().add<trogue::PositionComponent>(id, 1, 1);
         world.component().add_as<trogue::TileComponent, trogue::SharedTileComponent>(id, normal, blocked, 2);
     }
 }
 
 void create_some_enemies(tyra::World& world) {
-    auto normal = trogue::Tile::create("E", 30, -1);
-    auto blocked = trogue::Tile::create("E", 40, -1);
+    auto normal = trogue::Tile::create("E", 0x30FFFF, -1);
+    auto blocked = trogue::Tile::create("E", 0x10FFFF, -1);
     for (int i = 0; i < 3; ++i) {
         auto eid = world.entity().create();
         world.component().add<trogue::PositionComponent>(eid, rand() % map_height, rand() % map_width);

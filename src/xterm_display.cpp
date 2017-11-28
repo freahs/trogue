@@ -81,8 +81,20 @@ namespace trogue {
                     if (need_positioning) {
                         os << format::pos(y + 1, x + 1);
                     }
-                    os << format::fg(d.m_color);
-                    os << format::bg(d.m_bg_color);
+
+                    // FG COLOR
+                    if (d.m_color == -1) {
+                        os << format::fg_default();
+                    } else {
+                        os << format::fg((d.m_color >> 16 & 0xFF), (d.m_color >> 8 & 0xFF), (d.m_color & 0xFF));
+                    }
+
+                    //BG COLOR
+                    if (d.m_bg_color == -1) {
+                        os << format::bg_default();
+                    } else {
+                        os << format::bg((d.m_bg_color >> 16 & 0xFF), (d.m_bg_color >> 8 & 0xFF), (d.m_bg_color & 0xFF));
+                    }
                     os << d.m_symbol;
                     need_positioning = false;
                 } else {

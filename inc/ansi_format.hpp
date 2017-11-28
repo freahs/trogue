@@ -21,117 +21,109 @@
 
 namespace format {
 
-    // A binary (on/off) functor that applies an ANSI format to an ostream.
-    template<int ON, int OFF> class Format {
-    private:
-        static bool s_current_status;
+    template<int ON, int OFF> class binary {
         bool m_status;
-
     public:
-        Format(bool status) : m_status(status) { }
-
-        // When operator() is called with an ostream, apply format if
-        // not already active
+        binary(bool status) : m_status(status) { }
         std::ostream& operator()(std::ostream& os) const {
-            if (m_status != s_current_status) {
-                os << "\033[";
-                if (m_status) { os << ON; }
-                else { os << OFF; }
-                os << "m";
-            }
-            s_current_status = m_status;
-            return os;
+            os << "\033[";
+            if (m_status) { os << ON; }
+            else          { os << OFF; }
+            return os << "m";
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, binary<ON, OFF> b) {
+            return b(os);
         }
     };
 
-    // Functor that applies a color to an ostream
-    template<int ON, int OFF> class Color {
-    private:
-        static int s_current_color;
-        int m_color;
-
+    template <int CODE> class color_8 {
+        uint8_t m_color;
     public:
-        Color(int color) : m_color(color) { }
-
+        color_8(uint8_t color) : m_color(color) { }
         std::ostream& operator()(std::ostream& os) const {
-            if (m_color != s_current_color) {
-                os << "\033[";
-                if (m_color  == -1) { os << OFF; }
-                else { os << ON << ";5;" << m_color; }
-                os << "m";
-            }
-            s_current_color = m_color;
-            return os;
+            return os << "\033["<< CODE << ";5;" << static_cast<int>(m_color) << "m";
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, const color_8<CODE> color) {
+            return color(os);
         }
     };
 
-    // Functor that positions the cursor in an ostream
+    template <int CODE> class color_24 {
+        uint8_t r, g, b;
+    public:
+        color_24(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) { }
+        std::ostream& operator()(std::ostream& os) const {
+            os << "\033[" << CODE << ";2;" << static_cast<int>(r) << ";" << static_cast<int>(g) << ";" << static_cast<int>(b) << "m";
+            return os;
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, const color_24<CODE> color) {
+            return color(os);
+        }
+    };
+
+    template <int CODE> struct color_default {
+        std::ostream& operator()(std::ostream& os) const {
+            return os << "\033[" << CODE << "m";
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, const color_default<CODE> color) {
+            return color(os);
+        }
+    };
+
     class pos {
-    private:
-        int m_row;
-        int m_col;
-
+        int m_row, m_col;
     public:
         pos(int row, int col) : m_row(row), m_col(col) { }
-
         std::ostream& operator()(std::ostream& os) const {
-            os << "\033[" << m_row << ";" << m_col <<  "H";
+            return os << "\033[" << m_row << ";" << m_col <<  "H";
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, pos p) {
+            return p(os);
+        }
+    };
+
+    class rpos {
+        int m_row, m_col;
+    public:
+        rpos(int row, int col) : m_row(row), m_col(col) { }
+        std::ostream& operator()(std::ostream& os) const {
+            if (m_row < 0) { os << "\033[" << -m_row << "A"; }
+            if (m_row > 0) { os << "\033[" << m_row << "B"; }
+            if (m_col < 0) { os << "\033[" << -m_col << "D"; }
+            if (m_col > 0) { os << "\033[" << m_col << "C"; }
             return os;
         }
+        friend inline std::ostream& operator<<(std::ostream& os, rpos rp) {
+            return rp(os);
+        }
+
     };
 
     class hide {
-    private:
-        bool            m_hide;
+        bool m_hide;
     public:
         hide(bool hide) : m_hide(hide) { }
-
         std::ostream& operator()(std::ostream& os) const {
-            if (m_hide) {
-                os << "\033[?25l";
-            } else {
-                os << "\033[?25h";
-            }
-            return os;
+            if (m_hide) { return os << "\033[?25l"; }
+            else        { return os << "\033[?25h"; }
+        }
+        friend inline std::ostream& operator<<(std::ostream& os, hide h) {
+            return h(os);
         }
     };
 
-    // Initialize format as inactive
-    template<int ON, int OFF>
-    bool Format<ON, OFF>::s_current_status = false;
-
-    // Make operator<< call operator() on the functor
-    template<int ON, int OFF>
-    inline std::ostream& operator<<(std::ostream& os, Format<ON, OFF> format) {
-        return format(os);
-    }
-
-    // -1 represents default terminal color
-    template<int ON, int OFF>
-    int Color<ON, OFF>::s_current_color = -1;
-
-    template<int ON, int OFF>
-    inline std::ostream& operator<<(std::ostream& os, Color<ON, OFF> color) {
-        return color(os);
-    }
-
     // Common formats
-    typedef Format<1, 22> bold;
-    typedef Format<3, 23> italic;
-    typedef Format<4, 24> underline;
+    typedef binary<1, 22> bold;
+    typedef binary<3, 23> italic;
+    typedef binary<4, 24> underline;
 
     // Foreground and background color
-    typedef Color<38, 39> fg;
-    typedef Color<48, 49> bg;
-
-    inline std::ostream& operator<<(std::ostream& os, pos p) {
-        return p(os);
-    }
-
-
-    inline std::ostream& operator<<(std::ostream& os, hide h) {
-       return h(os);
-    } 
+    inline color_8<38> fg(uint8_t c) { return color_8<38>(c); }
+    inline color_24<38> fg(uint8_t r, uint8_t g, uint8_t b) { return color_24<38>(r, g, b); }
+    using fg_default = color_default<39>;
+    inline color_8<48> bg(uint8_t c) { return color_8<48>(c); }
+    inline color_24<48> bg(uint8_t r, uint8_t g, uint8_t b) { return color_24<48>(r, g, b); }
+    using bg_default = color_default<49>;
 
     // clear funtion
     inline std::ostream& clear(std::ostream& os) {
