@@ -189,7 +189,7 @@ namespace trogue {
         }
 
         // Utilizes the create_corridor function to create a door of specific size 
-        area_ptr create_door(area_ptr a, area_ptr b, int door_width, int wall_size) {
+        area_ptr create_door(area_ptr a, area_ptr b, int wall_size, int door_width) {
             auto adj = a->adjacent(*b);
             if (adj.first < 0 || adj.second > wall_size) { return nullptr; }
 
@@ -212,33 +212,30 @@ namespace trogue {
             return door;
         }
 
+        // Make sure all areas are separated by at least as much wall as specified by wall_size
+        // and adds doors with width door_width between all appropriate rooms.
         void create_rooms(Graph& g, int wall_size, int door_width) {
             using Type = Area::Type;
             auto areas = g.areas();
             for (auto& a : areas) {
                 for (auto& b : areas) {
                     auto adj = a->adjacent(*b);
-                    if (adj.second == 0) {
-                        if (adj.first == 1) a->move_right_wall(wall_size);
-                        if (adj.first == 2) a->move_bottom_wall(wall_size);
-                    }
+                    if (adj.second == 0 && adj.first == 1) a->move_right_wall(wall_size);
+                    if (adj.second == 0 && adj.first == 2) a->move_bottom_wall(wall_size);
                 }
             }
-            for (auto& p1 : g) {
-                auto& a = p1.first;
-                for (auto& p2 : g) {
-                    auto& b = p2.first;
-                    if (a->type() == Type::ROOM && b->type() == Type::ROOM && a < b) {
-                        auto door = create_door(a, b, door_width, wall_size);
-                        if (door != nullptr) {
-                            g.connect(a, door);
-                            g.connect(b, door);
-                        }
+            for (auto& a : areas) {
+                for (auto& b : areas) {
+                    auto door = create_door(a, b, wall_size, door_width);
+                    if (a < b && door != nullptr) {
+                        g.connect(a, door);
+                        g.connect(b, door);
                     }
                 }
             }
         }
 
+        // Creates a minimum spanning tree from a graph.
         Graph mst(const Graph& g) {
             Graph mst;
             auto areas = g.areas();
@@ -268,99 +265,5 @@ namespace trogue {
             }
             return mst;
         }
-
-    /*
-        std::vector<area_ptr> bsp2(std::vector<area_ptr> areas) {
-            // shift walls to create rooms
-            std::map<area_ptr, std::set<area_ptr>> graph;
-            for (auto& a : areas) {
-                for (auto& b : areas) {
-                    auto adj = a->adjacent(*b);
-                    if (adj > 0) {
-                        graph[a].insert(b);
-                        graph[b].insert(a);
-                    }
-                    if (adj == 0) a->move_top_wall(1);
-                    if (adj == 1) a->move_right_wall(1);
-                    if (adj == 2) a->move_bottom_wall(1);
-                    if (adj == 3) a->move_left_wall(1);
-                }
-            }
-
-            // build a mst from the rooms
-            // TODO: improve...
-            std::map<area_ptr, std::set<area_ptr>> mst;
-            mst.insert(*graph.begin());
-            while (!graph.empty()) {
-                area_ptr best_u = nullptr;
-                area_ptr best_v = nullptr;
-                int best_d = std::numeric_limits<int>::max();
-                for (auto& m : mst) {
-                    auto& u = m.first;
-                    auto g_it = graph.find(u);
-                    if (g_it != graph.end()) {
-                        for (auto& v : g_it->second) {
-                            if (u->distance(*v) < best_d && u != v && mst.find(v) == mst.end()) {
-                                best_d = u->distance(*v);
-                                best_u = u;
-                                best_v = v;
-                            }
-                        }
-                    }
-                }
-                if (best_u == nullptr) { break; }
-                mst[best_u].insert(best_v);
-                mst[best_v].insert(best_u);
-                auto u_it = graph.find(best_u);
-                auto v_it = u_it->second.find(best_v);
-                u_it->second.erase(v_it);
-                if (u_it->second.empty()) {
-                    graph.erase(u_it);
-                }
-            }
-
-            // add doors between rooms
-            std::vector<area_ptr> rooms;
-            for (auto& p : mst) {
-                auto& u = p.first;
-                rooms.push_back(u);
-                for (auto& v : p.second) {
-                    auto door = connect(u, v);
-                    if (door != nullptr && u < v) {
-                        auto x_shift = utils::random(0, door->width() - 1);
-                        auto y_shift = utils::random(0, door->height() - 1);
-                        rooms.push_back(std::make_shared<Area>(door->y1() + y_shift, door->x1() + x_shift, 1, 1));
-                    }
-                }
-            }
-            return rooms;
-        }
-
-        void impl::bsp::split(int min_size) {
-            if (height() > width() && height() >= min_size*2) {
-                auto offset = trogue::utils::random(min_size, height() - min_size);
-                l = std::unique_ptr<bsp>( new bsp(y1(), x1(), offset, width()));
-                r = std::unique_ptr<bsp>( new bsp(y1() + offset, x1(), height() - offset, width()));
-            } else if (width() >= height() && width() >= min_size*2) {
-                auto offset = trogue::utils::random(min_size, width() - min_size);
-                l = std::unique_ptr<bsp>(new bsp(y1(), x1(), height(), offset));
-                r = std::unique_ptr<bsp>(new bsp(y1(), x1() + offset, height(), width() - offset));
-            } else {
-                return;
-            }
-            l->split(min_size);
-            r->split(min_size);
-        }
-
-        void impl::bsp::areas(std::vector<area_ptr>& v) const {
-            if (l == nullptr && r == nullptr) {
-                v.push_back(std::make_shared<Area>(*this));
-            } else {
-                l->areas(v);
-                r->areas(v);
-            }
-        }
-        */
-
     }
 }

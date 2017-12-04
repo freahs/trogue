@@ -9,11 +9,11 @@ LIB_DIR=lib
 RELEASE_FLAGS=-DNDEBUG
 DEBUG_FLAGS=#-Q
 
-_OBJ = xterm_display.o shadowcast.o scene.o movementsystem.o tilesystem.o playersystem.o aisystem.o tile.o entitystack.o visibilitysystem.o terrainsystem.o animationsystem.o
+_OBJ = xterm_display.o shadowcast.o scene.o movementsystem.o tilesystem.o playersystem.o aisystem.o tile.o entitystack.o visibilitysystem.o terrainsystem.o animationsystem.o mapgen.o
 OBJ = $(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 #fdiagnostics requirec gcc 4.9+
-CC_FLAGS=-fdiagnostics-color=always -std=c++11 -Wall -pedantic -pthread -g$(CFLAGS)
+CC_FLAGS=-fdiagnostics-color=always -std=c++14 -Wall -pedantic -pthread -g$(CFLAGS)
 
 CC=g++
 

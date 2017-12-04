@@ -20,6 +20,9 @@
 #include "visibilitysystem.hpp"
 #include "terrainsystem.hpp"
 #include "animationsystem.hpp"
+#include "mapgen.hpp"
+#include "utils.hpp"
+#include "ansi_format.hpp"
 
 #include "tyra/tyra.hpp"
 
@@ -29,8 +32,8 @@ typedef std::chrono::high_resolution_clock      Time;
 typedef std::chrono::milliseconds               Ms;
 typedef std::chrono::system_clock::time_point   TimePoint;
 
-int map_height = 50;
-int map_width = 50;
+static const int map_height = 50;
+static const int map_width = 50;
 
 void create_animation(tyra::World& world) {
     auto id = world.entity().create();
@@ -92,6 +95,23 @@ void create_some_enemies(tyra::World& world) {
         world.component().add<trogue::AIComponent>(eid, (rand() % 100) + 1000);
         world.component().add<trogue::AttributeComponent>(eid, trogue::Attribute::SOLID, trogue::Attribute::OPAQUE);
     }
+}
+
+void print_area(trogue::mapgen::Area a, int color, int max_height, int max_width) {
+    for (int i = 0; i < a.height(); ++i) {
+        for (int j = 0; j < a.width(); ++j) {
+            std::cout << format::pos(a.y1() + i + 1, a.x1() + j + 1) << format::bg(color) << ".";
+        }
+    }
+    std::cout << format::pos(max_height, max_width) << format::clear << std::endl;
+}
+
+void rprint_area(trogue::mapgen::Area a, int color) {
+    std::cout << format::rpos(a.y1(), 0);
+    for (int i = 0; i < a.height(); ++i) {
+        std::cout << format::rpos(0, a.x1()) << format::bg(color) << std::string(a.width(), '.') << std::endl;
+    }
+    std::cout << format::rpos(-a.y1() - a.height(), -a.x1() - a.width()) << format::clear;
 }
 
 int main() {

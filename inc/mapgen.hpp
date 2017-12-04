@@ -71,37 +71,12 @@ namespace trogue {
             map_type::iterator end() { return m_adj.end(); }
             std::set<area_ptr> areas() const;
         };
-        area_ptr create_corridor(area_ptr a1, area_ptr a2);
 
         Graph bsp(int h, int w, int min_size);
+        area_ptr create_corridor(area_ptr a1, area_ptr a2);
         area_ptr create_door(area_ptr a, area_ptr b);
         void create_rooms(Graph& g, int wall_size, int door_width);
         Graph mst(const Graph& g);
-        /*
-        std::vector<std::shared_ptr<Area>> bsp(int height, int width, int min_partition_size);
-        void add_space(std::vector<Area>& v, int dist);
-        std::vector<area_ptr> add_doors(std::vector<area_ptr>& v);
-        std::vector<area_ptr> bsp2(std::vector<area_ptr> areas);
-        */
-
-
-        /*
-        namespace impl {
-            class bsp : public Area {
-                std::unique_ptr<bsp> l;
-                std::unique_ptr<bsp> r;
-
-                bsp (int y, int x, int h, int w)
-                : Area(y, x, h, w, Area::Type::ROOM), l(nullptr), r(nullptr) { }
-
-                void split(int min_size);
-                void areas(std::vector<area_ptr>& v) const;
-
-                friend std::vector<area_ptr> trogue::mapgen::bsp(int h, int w, int min_size);
-                friend Graph trogue::mapgen::bsp3(int h, int w, int min_size);
-            };
-        }
-        */
 
     }
 }
