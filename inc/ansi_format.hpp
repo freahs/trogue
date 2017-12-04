@@ -49,11 +49,11 @@ namespace format {
     };
 
     template <int CODE> class color_24 {
-        uint8_t r, g, b;
+        uint8_t m_r, m_g, m_b;
     public:
-        color_24(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) { }
+        color_24(uint8_t r, uint8_t g, uint8_t b) : m_r(r), m_g(g), m_b(b) { }
         std::ostream& operator()(std::ostream& os) const {
-            os << "\033[" << CODE << ";2;" << static_cast<int>(r) << ";" << static_cast<int>(g) << ";" << static_cast<int>(b) << "m";
+            os << "\033[" << CODE << ";2;" << static_cast<int>(m_r) << ";" << static_cast<int>(m_g) << ";" << static_cast<int>(m_b) << "m";
             return os;
         }
         friend inline std::ostream& operator<<(std::ostream& os, const color_24<CODE> color) {
@@ -100,12 +100,12 @@ namespace format {
     };
 
     class hide {
-        bool m_hide;
+        bool m_hidden;
     public:
-        hide(bool hide) : m_hide(hide) { }
+        hide(bool hidden) : m_hidden(hidden) { }
         std::ostream& operator()(std::ostream& os) const {
-            if (m_hide) { return os << "\033[?25l"; }
-            else        { return os << "\033[?25h"; }
+            if (m_hidden) { return os << "\033[?25l"; }
+            else          { return os << "\033[?25h"; }
         }
         friend inline std::ostream& operator<<(std::ostream& os, hide h) {
             return h(os);
