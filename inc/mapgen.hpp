@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 
+#include "map.hpp"
 #include "utils.hpp"
 
 namespace trogue {
@@ -47,6 +48,8 @@ namespace trogue {
             void move_left_wall(int dist) { m_x += dist; m_width -= dist; }
 
             bool operator==(const Area& other) const;
+
+            void map(Map<bool>& m) const;
 
             friend std::ostream& operator<<(std::ostream& os, const Area& a);
         };

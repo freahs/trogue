@@ -46,6 +46,14 @@ namespace trogue {
             return true;
         }
 
+        void Area::map(Map<bool>& m) const {
+            for (auto y = y1(); y <= y2(); ++y) {
+                for (auto x = x1(); x <= x2(); ++x) {
+                    m[y][x] = true;
+                }
+            }
+        }
+
         std::ostream& operator<<(std::ostream& os, const Area& a) {
             os << "(y = " << a.m_y << ", x = " << a.m_x;
             os << ", h = " << a.m_height << ", w = " << a.m_width << ")";
@@ -215,7 +223,6 @@ namespace trogue {
         // Make sure all areas are separated by at least as much wall as specified by wall_size
         // and adds doors with width door_width between all appropriate rooms.
         void create_rooms(Graph& g, int wall_size, int door_width) {
-            using Type = Area::Type;
             auto areas = g.areas();
             for (auto& a : areas) {
                 for (auto& b : areas) {
@@ -254,7 +261,6 @@ namespace trogue {
                         }
                     }
                 }
-                if (best_u == nullptr) { break; }
                 mst.connect(best_u, best_v);
                 areas.erase(best_v);
             }

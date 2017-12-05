@@ -47,7 +47,7 @@ void create_player(tyra::World& world) {
     auto n_tile = trogue::Tile::create("@", 0xFFFF00, -1);
     auto h_tile = trogue::Tile::create("@", 0xAAAA00, -1);
     auto pid = world.entity().create();
-    world.component().add<trogue::PositionComponent>(pid, map_height/2, map_width/2);
+    world.component().add<trogue::PositionComponent>(pid, 0, 0);
     world.component().add_as<trogue::TileComponent, trogue::SharedTileComponent>(pid, n_tile, h_tile, 1);
     world.component().add<trogue::SightComponent>(pid, 20);
     world.component().add<trogue::PlayerComponent>(pid);
@@ -60,11 +60,19 @@ void create_tiles(tyra::World& world) {
     auto wall_b_tile = trogue::Tile::create("X", 0x505050, -1);
     auto floor_n_tile = trogue::Tile::create(".", 0x707070, -1);
     auto floor_b_tile = trogue::Tile::create(".", 0x505050, -1);
-    for (int y = 0; y < map_height; ++y) {
-        for (int x = 0; x < map_width; ++x) {
+    auto g = trogue::mapgen::bsp(map_height, map_width, 5);
+    trogue::mapgen::create_rooms(g, 1, 1);
+    g = trogue::mapgen::mst(g);
+    trogue::Map<bool> m(map_height, map_width);
+    for (auto& a : g.areas()) {
+        a->map(m);
+    }
+
+    for (int y = 0; y < m.height(); ++y) {
+        for (int x = 0; x < m.width(); ++x) {
             tyra::EntityId id = world.entity().create();
             world.component().add<trogue::PositionComponent>(id, y, x);
-            if (y == map_height/2 + 2 && x > 3 && x < map_width - 3){
+            if (!m[y][x]) {
                 world.component().add_as<trogue::TileComponent, trogue::SharedTileComponent>(id, wall_n_tile, wall_b_tile, 0);
                 world.component().add<trogue::AttributeComponent>(id, trogue::Attribute::SOLID, trogue::Attribute::OPAQUE);
             } else {
